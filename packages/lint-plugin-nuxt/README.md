@@ -3,7 +3,7 @@
 [![npm version](https://img.shields.io/npm/v/@nustackjs/lint-plugin-nuxt)](https://www.npmjs.com/package/@nustackjs/lint-plugin-nuxt)
 [![GitHub License](https://img.shields.io/github/license/Zerya-Dev/nustack)](https://github.com/Zerya-Dev/nustack/blob/master/LICENSE)
 
-ESLint and [Oxlint](https://oxc.rs) rules for [Nuxt](https://nuxt.com) conventions. This plugin enforces `runtimeConfig` safety, correct auto-imports usage, prevents `process.env` leaks in app code, and validates `nuxt.config` module settings like registration order and deprecated modules.
+ESLint and [Oxlint](https://oxc.rs) rules for [Nuxt](https://nuxt.com) conventions. This plugin enforces `runtimeConfig` safety, correct auto-imports usage, prevents `process.env` leaks in app code, detects ignored external config files and validates `nuxt.config` module settings like registration order and deprecated modules.
 
 Every rule is based on Nuxt's official documentation and recommendations.
 
@@ -44,6 +44,7 @@ These rules are compatible with Oxlint, although some may not work perfectly due
 | [`@nustack/nuxt/modules-order`](https://github.com/Zerya-Dev/nustack/blob/master/packages/lint-plugin-nuxt/src/rules/modules-order/index.md) | Enforce a correct registration order for interdependent Nuxt modules. |
 | [`@nustack/nuxt/no-deprecated-modules`](https://github.com/Zerya-Dev/nustack/blob/master/packages/lint-plugin-nuxt/src/rules/no-deprecated-modules/index.md) | Disallow deprecated Nuxt modules in favor of their maintained successors. |
 | [`@nustack/nuxt/no-explicit-auto-import`](https://github.com/Zerya-Dev/nustack/blob/master/packages/lint-plugin-nuxt/src/rules/no-explicit-auto-import/index.md) | Disallow explicit imports of identifiers/components Nuxt already auto-imports. |
+| [`@nustack/nuxt/no-ignored-config-files`](https://github.com/Zerya-Dev/nustack/blob/master/packages/lint-plugin-nuxt/src/rules/no-ignored-config-files/index.md) | Disallow external configuration files that Nuxt ignores. |
 | [`@nustack/nuxt/no-process-env`](https://github.com/Zerya-Dev/nustack/blob/master/packages/lint-plugin-nuxt/src/rules/no-process-env/index.md) | Disallow `process.env` in app code; use `runtimeConfig` / `useRuntimeConfig()`. |
 | [`@nustack/nuxt/no-secret-in-public-runtimeconfig`](https://github.com/Zerya-Dev/nustack/blob/master/packages/lint-plugin-nuxt/src/rules/no-secret-in-public-runtimeconfig/index.md) | Disallow secret-looking keys under `runtimeConfig.public`. |
 

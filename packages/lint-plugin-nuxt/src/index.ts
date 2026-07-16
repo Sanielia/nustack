@@ -3,11 +3,19 @@ import { eslintCompatPlugin } from '@oxlint/plugins'
 import { modulesOrder as modulesOrderRule } from './rules/modules-order/index.js'
 import { noDeprecatedModules as noDeprecatedModulesRule } from './rules/no-deprecated-modules/index.js'
 import { noExplicitAutoImport as noExplicitAutoImportRule } from './rules/no-explicit-auto-import/index.js'
+import { noIgnoredConfigFiles as rawNoIgnoredConfigFiles } from './rules/no-ignored-config-files/index.js'
 import { noProcessEnv as noProcessEnvRule } from './rules/no-process-env/index.js'
 import { noSecretInPublicRuntimeConfig as noSecretInPublicRuntimeConfigRule } from './rules/no-secret-in-public-runtimeconfig/index.js'
 
 /** Where `modules` / `runtimeConfig` rules apply. */
 export const NUXT_CONFIG_GLOB = ['**/nuxt.config.{ts,js,mjs,mts,cjs,cts}']
+/** External configuration files that Nuxt ignores in favour of `nuxt.config`. */
+export const IGNORED_NUXT_CONFIG_GLOB = [
+  '**/nitro.config.{js,mjs,cjs,ts,mts,cts}',
+  '**/postcss.config.{js,mjs,cjs,ts,mts,cts}',
+  '**/vite.config.{js,mjs,cjs,ts,mts,cts}',
+  '**/webpack.config.{js,mjs,cjs,ts,mts,cts}',
+]
 /** App source, where auto-import / `process.env` rules apply. */
 export const APP_GLOB = ['**/*.vue', '**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}']
 /** Non-app paths excluded from app-source rules (build/server/tooling). */
@@ -27,6 +35,7 @@ const plugin = eslintCompatPlugin({
     'modules-order': modulesOrderRule,
     'no-deprecated-modules': noDeprecatedModulesRule,
     'no-explicit-auto-import': noExplicitAutoImportRule,
+    'no-ignored-config-files': rawNoIgnoredConfigFiles,
     'no-process-env': noProcessEnvRule,
     'no-secret-in-public-runtimeconfig': noSecretInPublicRuntimeConfigRule,
   },
@@ -84,6 +93,15 @@ export function nuxtConfigs(options: NuxtConfigsOptions = {}): Linter.Config[] {
 
     configs.push(
       {
+        // Nuxt ignores these files; their configuration belongs in `nuxt.config`.
+        name: 'nustack/nuxt/external-config',
+        files: IGNORED_NUXT_CONFIG_GLOB,
+        plugins: pluginRef,
+        rules: {
+          '@nustack/nuxt/no-ignored-config-files': 'error',
+        },
+      },
+      {
         // `modules` array correctness, registration order and deprecated modules.
         name: 'nustack/nuxt/modules',
         files: NUXT_CONFIG_GLOB,
@@ -127,6 +145,7 @@ plugin.configs = {
 export const modulesOrder: Rule.RuleModule = plugin.rules!['modules-order'] as Rule.RuleModule
 export const noDeprecatedModules: Rule.RuleModule = plugin.rules!['no-deprecated-modules'] as Rule.RuleModule
 export const noExplicitAutoImport: Rule.RuleModule = plugin.rules!['no-explicit-auto-import'] as Rule.RuleModule
+export const noIgnoredConfigFiles: Rule.RuleModule = plugin.rules!['no-ignored-config-files'] as Rule.RuleModule
 export const noProcessEnv: Rule.RuleModule = plugin.rules!['no-process-env'] as Rule.RuleModule
 export const noSecretInPublicRuntimeConfig: Rule.RuleModule = plugin.rules!['no-secret-in-public-runtimeconfig'] as Rule.RuleModule
 export default plugin
