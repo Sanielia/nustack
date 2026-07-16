@@ -47,6 +47,7 @@ These rules are compatible with Oxlint, although some may not work perfectly due
 | [`@nustack/nuxt/no-ignored-config-files`](https://github.com/Zerya-Dev/nustack/blob/master/packages/lint-plugin-nuxt/src/rules/no-ignored-config-files/index.md) | Disallow external configuration files that Nuxt ignores. |
 | [`@nustack/nuxt/no-process-env`](https://github.com/Zerya-Dev/nustack/blob/master/packages/lint-plugin-nuxt/src/rules/no-process-env/index.md) | Disallow `process.env` in app code; use `runtimeConfig` / `useRuntimeConfig()`. |
 | [`@nustack/nuxt/no-secret-in-public-runtimeconfig`](https://github.com/Zerya-Dev/nustack/blob/master/packages/lint-plugin-nuxt/src/rules/no-secret-in-public-runtimeconfig/index.md) | Disallow secret-looking keys under `runtimeConfig.public`. |
+| [`@nustack/nuxt/preserve-default-tsconfig`](https://github.com/Zerya-Dev/nustack/blob/master/packages/lint-plugin-nuxt/src/rules/preserve-default-tsconfig/index.md) | Require Nuxt projects to preserve the default root TypeScript configuration. |
 
 ## License
 

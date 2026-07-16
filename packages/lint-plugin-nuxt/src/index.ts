@@ -3,9 +3,10 @@ import { eslintCompatPlugin } from '@oxlint/plugins'
 import { modulesOrder as modulesOrderRule } from './rules/modules-order/index.js'
 import { noDeprecatedModules as noDeprecatedModulesRule } from './rules/no-deprecated-modules/index.js'
 import { noExplicitAutoImport as noExplicitAutoImportRule } from './rules/no-explicit-auto-import/index.js'
-import { noIgnoredConfigFiles as rawNoIgnoredConfigFiles } from './rules/no-ignored-config-files/index.js'
+import { noIgnoredConfigFiles as noIgnoredConfigFilesRule } from './rules/no-ignored-config-files/index.js'
 import { noProcessEnv as noProcessEnvRule } from './rules/no-process-env/index.js'
 import { noSecretInPublicRuntimeConfig as noSecretInPublicRuntimeConfigRule } from './rules/no-secret-in-public-runtimeconfig/index.js'
+import { preserveDefaultTsconfig as preserveDefaultTsconfigRule } from './rules/preserve-default-tsconfig/index.js'
 
 /** Where `modules` / `runtimeConfig` rules apply. */
 export const NUXT_CONFIG_GLOB = ['**/nuxt.config.{ts,js,mjs,mts,cjs,cts}']
@@ -35,9 +36,10 @@ const plugin = eslintCompatPlugin({
     'modules-order': modulesOrderRule,
     'no-deprecated-modules': noDeprecatedModulesRule,
     'no-explicit-auto-import': noExplicitAutoImportRule,
-    'no-ignored-config-files': rawNoIgnoredConfigFiles,
+    'no-ignored-config-files': noIgnoredConfigFilesRule,
     'no-process-env': noProcessEnvRule,
     'no-secret-in-public-runtimeconfig': noSecretInPublicRuntimeConfigRule,
+    'preserve-default-tsconfig': preserveDefaultTsconfigRule,
   },
 }) as unknown as ESLint.Plugin & {
   configs: {
@@ -109,6 +111,7 @@ export function nuxtConfigs(options: NuxtConfigsOptions = {}): Linter.Config[] {
         rules: {
           '@nustack/nuxt/modules-order': 'error',
           '@nustack/nuxt/no-deprecated-modules': 'error',
+          '@nustack/nuxt/preserve-default-tsconfig': 'error',
         },
       },
       {
@@ -148,4 +151,5 @@ export const noExplicitAutoImport: Rule.RuleModule = plugin.rules!['no-explicit-
 export const noIgnoredConfigFiles: Rule.RuleModule = plugin.rules!['no-ignored-config-files'] as Rule.RuleModule
 export const noProcessEnv: Rule.RuleModule = plugin.rules!['no-process-env'] as Rule.RuleModule
 export const noSecretInPublicRuntimeConfig: Rule.RuleModule = plugin.rules!['no-secret-in-public-runtimeconfig'] as Rule.RuleModule
+export const preserveDefaultTsconfig: Rule.RuleModule = plugin.rules!['preserve-default-tsconfig'] as Rule.RuleModule
 export default plugin
