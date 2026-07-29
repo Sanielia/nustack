@@ -1,5 +1,6 @@
 import type { ESLint, Linter, Rule } from 'eslint'
 import { eslintCompatPlugin } from '@oxlint/plugins'
+import { headTagStyle as headTagStyleRule } from './rules/head-tag-style/index.js'
 import { modulesOrder as modulesOrderRule } from './rules/modules-order/index.js'
 import { noDeprecatedModules as noDeprecatedModulesRule } from './rules/no-deprecated-modules/index.js'
 import { noExplicitAutoImport as noExplicitAutoImportRule } from './rules/no-explicit-auto-import/index.js'
@@ -33,6 +34,7 @@ const plugin = eslintCompatPlugin({
     name: '@nustack/nuxt',
   },
   rules: {
+    'head-tag-style': headTagStyleRule,
     'modules-order': modulesOrderRule,
     'no-deprecated-modules': noDeprecatedModulesRule,
     'no-explicit-auto-import': noExplicitAutoImportRule,
@@ -121,6 +123,7 @@ export function nuxtConfigs(options: NuxtConfigsOptions = {}): Linter.Config[] {
         ignores: APP_IGNORES,
         plugins: pluginRef,
         rules: {
+          '@nustack/nuxt/head-tag-style': 'error',
           '@nustack/nuxt/no-process-env': 'warn',
           '@nustack/nuxt/no-explicit-auto-import': hasContext ? ['error', autoImportOptions] : 'error',
         },
@@ -145,6 +148,7 @@ plugin.configs = {
   recommended: nuxtConfigs(),
 }
 
+export const headTagStyle: Rule.RuleModule = plugin.rules!['head-tag-style'] as Rule.RuleModule
 export const modulesOrder: Rule.RuleModule = plugin.rules!['modules-order'] as Rule.RuleModule
 export const noDeprecatedModules: Rule.RuleModule = plugin.rules!['no-deprecated-modules'] as Rule.RuleModule
 export const noExplicitAutoImport: Rule.RuleModule = plugin.rules!['no-explicit-auto-import'] as Rule.RuleModule

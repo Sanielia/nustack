@@ -41,6 +41,7 @@ These rules are compatible with Oxlint, although some may not work perfectly due
 
 | Rule | Description |
 |---|---|
+| [`@nustack/nuxt/head-tag-style`](https://github.com/Zerya-Dev/nustack/blob/master/packages/lint-plugin-nuxt/src/rules/head-tag-style/index.md) | Enforce either `useHead` (default) or Nuxt head components for head tags. |
 | [`@nustack/nuxt/modules-order`](https://github.com/Zerya-Dev/nustack/blob/master/packages/lint-plugin-nuxt/src/rules/modules-order/index.md) | Enforce a correct registration order for interdependent Nuxt modules. |
 | [`@nustack/nuxt/no-deprecated-modules`](https://github.com/Zerya-Dev/nustack/blob/master/packages/lint-plugin-nuxt/src/rules/no-deprecated-modules/index.md) | Disallow deprecated Nuxt modules in favor of their maintained successors. |
 | [`@nustack/nuxt/no-explicit-auto-import`](https://github.com/Zerya-Dev/nustack/blob/master/packages/lint-plugin-nuxt/src/rules/no-explicit-auto-import/index.md) | Disallow explicit imports of identifiers/components Nuxt already auto-imports. |
