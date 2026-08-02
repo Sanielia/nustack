@@ -7,6 +7,7 @@ import { noExplicitAutoImport as noExplicitAutoImportRule } from './rules/no-exp
 import { noIgnoredConfigFiles as noIgnoredConfigFilesRule } from './rules/no-ignored-config-files/index.js'
 import { noProcessEnv as noProcessEnvRule } from './rules/no-process-env/index.js'
 import { noProxyingUnsafeHeaders as noProxyingUnsafeHeadersRule } from './rules/no-proxying-unsafe-headers/index.js'
+import { noRefOutsideSetup as noRefOutsideSetupRule } from './rules/no-ref-outside-setup/index.js'
 import { noSecretInPublicRuntimeConfig as noSecretInPublicRuntimeConfigRule } from './rules/no-secret-in-public-runtimeconfig/index.js'
 import { noUnserializableUseState as noUnserializableUseStateRule } from './rules/no-unserializable-use-state/index.js'
 import { preserveDefaultTsconfig as preserveDefaultTsconfigRule } from './rules/preserve-default-tsconfig/index.js'
@@ -43,6 +44,7 @@ const plugin = eslintCompatPlugin({
     'no-ignored-config-files': noIgnoredConfigFilesRule,
     'no-process-env': noProcessEnvRule,
     'no-proxying-unsafe-headers': noProxyingUnsafeHeadersRule,
+    'no-ref-outside-setup': noRefOutsideSetupRule,
     'no-secret-in-public-runtimeconfig': noSecretInPublicRuntimeConfigRule,
     'no-unserializable-use-state': noUnserializableUseStateRule,
     'preserve-default-tsconfig': preserveDefaultTsconfigRule,
@@ -132,6 +134,7 @@ export function nuxtConfigs(options: NuxtConfigsOptions = {}): Linter.Config[] {
           '@nustack/nuxt/head-tag-style': 'error',
           '@nustack/nuxt/no-process-env': 'warn',
           '@nustack/nuxt/no-proxying-unsafe-headers': 'error',
+          '@nustack/nuxt/no-ref-outside-setup': 'error',
           ...customPayloadReducer ? {} : { '@nustack/nuxt/no-unserializable-use-state': 'error' },
           '@nustack/nuxt/no-explicit-auto-import': hasContext ? ['error', autoImportOptions] : 'error',
         },
@@ -163,6 +166,7 @@ export const noExplicitAutoImport: Rule.RuleModule = plugin.rules!['no-explicit-
 export const noIgnoredConfigFiles: Rule.RuleModule = plugin.rules!['no-ignored-config-files'] as Rule.RuleModule
 export const noProcessEnv: Rule.RuleModule = plugin.rules!['no-process-env'] as Rule.RuleModule
 export const noProxyingUnsafeHeaders: Rule.RuleModule = plugin.rules!['no-proxying-unsafe-headers'] as Rule.RuleModule
+export const noRefOutsideSetup: Rule.RuleModule = plugin.rules!['no-ref-outside-setup'] as Rule.RuleModule
 export const noSecretInPublicRuntimeConfig: Rule.RuleModule = plugin.rules!['no-secret-in-public-runtimeconfig'] as Rule.RuleModule
 export const noUnserializableUseState: Rule.RuleModule = plugin.rules!['no-unserializable-use-state'] as Rule.RuleModule
 export const preserveDefaultTsconfig: Rule.RuleModule = plugin.rules!['preserve-default-tsconfig'] as Rule.RuleModule
