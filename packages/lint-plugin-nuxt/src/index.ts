@@ -6,6 +6,7 @@ import { noDeprecatedModules as noDeprecatedModulesRule } from './rules/no-depre
 import { noExplicitAutoImport as noExplicitAutoImportRule } from './rules/no-explicit-auto-import/index.js'
 import { noIgnoredConfigFiles as noIgnoredConfigFilesRule } from './rules/no-ignored-config-files/index.js'
 import { noProcessEnv as noProcessEnvRule } from './rules/no-process-env/index.js'
+import { noProxyingUnsafeHeaders as noProxyingUnsafeHeadersRule } from './rules/no-proxying-unsafe-headers/index.js'
 import { noSecretInPublicRuntimeConfig as noSecretInPublicRuntimeConfigRule } from './rules/no-secret-in-public-runtimeconfig/index.js'
 import { preserveDefaultTsconfig as preserveDefaultTsconfigRule } from './rules/preserve-default-tsconfig/index.js'
 
@@ -40,6 +41,7 @@ const plugin = eslintCompatPlugin({
     'no-explicit-auto-import': noExplicitAutoImportRule,
     'no-ignored-config-files': noIgnoredConfigFilesRule,
     'no-process-env': noProcessEnvRule,
+    'no-proxying-unsafe-headers': noProxyingUnsafeHeadersRule,
     'no-secret-in-public-runtimeconfig': noSecretInPublicRuntimeConfigRule,
     'preserve-default-tsconfig': preserveDefaultTsconfigRule,
   },
@@ -125,6 +127,7 @@ export function nuxtConfigs(options: NuxtConfigsOptions = {}): Linter.Config[] {
         rules: {
           '@nustack/nuxt/head-tag-style': 'error',
           '@nustack/nuxt/no-process-env': 'warn',
+          '@nustack/nuxt/no-proxying-unsafe-headers': 'error',
           '@nustack/nuxt/no-explicit-auto-import': hasContext ? ['error', autoImportOptions] : 'error',
         },
       },
@@ -154,6 +157,7 @@ export const noDeprecatedModules: Rule.RuleModule = plugin.rules!['no-deprecated
 export const noExplicitAutoImport: Rule.RuleModule = plugin.rules!['no-explicit-auto-import'] as Rule.RuleModule
 export const noIgnoredConfigFiles: Rule.RuleModule = plugin.rules!['no-ignored-config-files'] as Rule.RuleModule
 export const noProcessEnv: Rule.RuleModule = plugin.rules!['no-process-env'] as Rule.RuleModule
+export const noProxyingUnsafeHeaders: Rule.RuleModule = plugin.rules!['no-proxying-unsafe-headers'] as Rule.RuleModule
 export const noSecretInPublicRuntimeConfig: Rule.RuleModule = plugin.rules!['no-secret-in-public-runtimeconfig'] as Rule.RuleModule
 export const preserveDefaultTsconfig: Rule.RuleModule = plugin.rules!['preserve-default-tsconfig'] as Rule.RuleModule
 export default plugin
