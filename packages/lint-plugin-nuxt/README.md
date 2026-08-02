@@ -49,6 +49,7 @@ These rules are compatible with Oxlint, although some may not work perfectly due
 | [`@nustack/nuxt/no-process-env`](https://github.com/Zerya-Dev/nustack/blob/master/packages/lint-plugin-nuxt/src/rules/no-process-env/index.md) | Disallow `process.env` in app code; use `runtimeConfig` / `useRuntimeConfig()`. |
 | [`@nustack/nuxt/no-proxying-unsafe-headers`](https://github.com/Zerya-Dev/nustack/blob/master/packages/lint-plugin-nuxt/src/rules/no-proxying-unsafe-headers/index.md) | Disallow proxying unsafe client headers with `useRequestHeaders()`. |
 | [`@nustack/nuxt/no-secret-in-public-runtimeconfig`](https://github.com/Zerya-Dev/nustack/blob/master/packages/lint-plugin-nuxt/src/rules/no-secret-in-public-runtimeconfig/index.md) | Disallow secret-looking keys under `runtimeConfig.public`. |
+| [`@nustack/nuxt/no-unserializable-use-state`](https://github.com/Zerya-Dev/nustack/blob/master/packages/lint-plugin-nuxt/src/rules/no-unserializable-use-state/index.md) | Disallow values that Nuxt's default payload serializer cannot serialize in `useState` initializers. |
 | [`@nustack/nuxt/preserve-default-tsconfig`](https://github.com/Zerya-Dev/nustack/blob/master/packages/lint-plugin-nuxt/src/rules/preserve-default-tsconfig/index.md) | Require Nuxt projects to preserve the default root TypeScript configuration. |
 
 ## License

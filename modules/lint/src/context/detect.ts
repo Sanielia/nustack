@@ -62,6 +62,7 @@ export function detectStandaloneContext(cwd: string = process.cwd()): NustackCon
     tailwind: detectTailwind(cwd, resolvable),
     autoImports: [],
     components: [],
+    customPayloadReducer: false,
   }
 }
 

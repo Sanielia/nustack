@@ -14,6 +14,7 @@ export function nuxtConfig(
     variant: 'recommended',
     autoImports: context.autoImports,
     components: context.components,
+    customPayloadReducer: context.customPayloadReducer,
     rules: resolveConcernRules(options),
   })
 }

@@ -8,6 +8,7 @@ import { noIgnoredConfigFiles as noIgnoredConfigFilesRule } from './rules/no-ign
 import { noProcessEnv as noProcessEnvRule } from './rules/no-process-env/index.js'
 import { noProxyingUnsafeHeaders as noProxyingUnsafeHeadersRule } from './rules/no-proxying-unsafe-headers/index.js'
 import { noSecretInPublicRuntimeConfig as noSecretInPublicRuntimeConfigRule } from './rules/no-secret-in-public-runtimeconfig/index.js'
+import { noUnserializableUseState as noUnserializableUseStateRule } from './rules/no-unserializable-use-state/index.js'
 import { preserveDefaultTsconfig as preserveDefaultTsconfigRule } from './rules/preserve-default-tsconfig/index.js'
 
 /** Where `modules` / `runtimeConfig` rules apply. */
@@ -43,6 +44,7 @@ const plugin = eslintCompatPlugin({
     'no-process-env': noProcessEnvRule,
     'no-proxying-unsafe-headers': noProxyingUnsafeHeadersRule,
     'no-secret-in-public-runtimeconfig': noSecretInPublicRuntimeConfigRule,
+    'no-unserializable-use-state': noUnserializableUseStateRule,
     'preserve-default-tsconfig': preserveDefaultTsconfigRule,
   },
 }) as unknown as ESLint.Plugin & {
@@ -67,13 +69,15 @@ export interface NuxtConfigsOptions {
   autoImports?: string[]
   /** Auto-imported components, tunes `no-explicit-auto-import`. */
   components?: string[]
+  /** Whether the project registers a custom Nuxt payload reducer. */
+  customPayloadReducer?: boolean
   /** Extra rule overrides, merged onto the app-source scope. */
   rules?: Linter.RulesRecord
 }
 
 /** Returns file-scoped Nuxt flat configs. */
 export function nuxtConfigs(options: NuxtConfigsOptions = {}): Linter.Config[] {
-  const { variant = 'recommended', autoImports, components, rules } = options
+  const { variant = 'recommended', autoImports, components, customPayloadReducer = false, rules } = options
 
   const configs: Linter.Config[] = [
     {
@@ -128,6 +132,7 @@ export function nuxtConfigs(options: NuxtConfigsOptions = {}): Linter.Config[] {
           '@nustack/nuxt/head-tag-style': 'error',
           '@nustack/nuxt/no-process-env': 'warn',
           '@nustack/nuxt/no-proxying-unsafe-headers': 'error',
+          ...customPayloadReducer ? {} : { '@nustack/nuxt/no-unserializable-use-state': 'error' },
           '@nustack/nuxt/no-explicit-auto-import': hasContext ? ['error', autoImportOptions] : 'error',
         },
       },
@@ -159,5 +164,6 @@ export const noIgnoredConfigFiles: Rule.RuleModule = plugin.rules!['no-ignored-c
 export const noProcessEnv: Rule.RuleModule = plugin.rules!['no-process-env'] as Rule.RuleModule
 export const noProxyingUnsafeHeaders: Rule.RuleModule = plugin.rules!['no-proxying-unsafe-headers'] as Rule.RuleModule
 export const noSecretInPublicRuntimeConfig: Rule.RuleModule = plugin.rules!['no-secret-in-public-runtimeconfig'] as Rule.RuleModule
+export const noUnserializableUseState: Rule.RuleModule = plugin.rules!['no-unserializable-use-state'] as Rule.RuleModule
 export const preserveDefaultTsconfig: Rule.RuleModule = plugin.rules!['preserve-default-tsconfig'] as Rule.RuleModule
 export default plugin

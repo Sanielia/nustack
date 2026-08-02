@@ -20,6 +20,8 @@ export interface NustackContext {
    */
   autoImports: string[]
   components: string[]
+  /** Whether a registered Nuxt plugin defines custom payload serialization. */
+  customPayloadReducer?: boolean
 }
 
 export const EMPTY_CONTEXT: NustackContext = {
@@ -27,4 +29,5 @@ export const EMPTY_CONTEXT: NustackContext = {
   tailwind: { detected: false, entryPoint: null },
   autoImports: [],
   components: [],
+  customPayloadReducer: false,
 }
