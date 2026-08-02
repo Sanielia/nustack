@@ -7,6 +7,7 @@ import { noDeprecatedModules as noDeprecatedModulesRule } from './rules/no-depre
 import { noEmptyAsyncDataKey as noEmptyAsyncDataKeyRule } from './rules/no-empty-async-data-key/index.js'
 import { noExplicitAutoImport as noExplicitAutoImportRule } from './rules/no-explicit-auto-import/index.js'
 import { noIgnoredConfigFiles as noIgnoredConfigFilesRule } from './rules/no-ignored-config-files/index.js'
+import { noInvalidStatusText as noInvalidStatusTextRule } from './rules/no-invalid-status-text/index.js'
 import { noProcessEnv as noProcessEnvRule } from './rules/no-process-env/index.js'
 import { noProxyingUnsafeHeaders as noProxyingUnsafeHeadersRule } from './rules/no-proxying-unsafe-headers/index.js'
 import { noRefOutsideSetup as noRefOutsideSetupRule } from './rules/no-ref-outside-setup/index.js'
@@ -33,6 +34,15 @@ export const APP_IGNORES = [
   '**/*.{config,test,spec}.*',
   '**/*.d.ts',
 ]
+/** Nuxt runtime source, including Nitro server handlers. */
+export const NUXT_RUNTIME_GLOB = APP_GLOB
+/** Non-runtime paths excluded from Nuxt runtime rules. */
+export const NUXT_RUNTIME_IGNORES = [
+  '**/scripts/**',
+  '**/packages/**',
+  '**/*.{config,test,spec}.*',
+  '**/*.d.ts',
+]
 
 const plugin = eslintCompatPlugin({
   meta: {
@@ -46,6 +56,7 @@ const plugin = eslintCompatPlugin({
     'no-empty-async-data-key': noEmptyAsyncDataKeyRule,
     'no-explicit-auto-import': noExplicitAutoImportRule,
     'no-ignored-config-files': noIgnoredConfigFilesRule,
+    'no-invalid-status-text': noInvalidStatusTextRule,
     'no-process-env': noProcessEnvRule,
     'no-proxying-unsafe-headers': noProxyingUnsafeHeadersRule,
     'no-ref-outside-setup': noRefOutsideSetupRule,
@@ -129,6 +140,16 @@ export function nuxtConfigs(options: NuxtConfigsOptions = {}): Linter.Config[] {
         },
       },
       {
+        // Error APIs are shared by the Vue app and Nitro server handlers.
+        name: 'nustack/nuxt/error-handling',
+        files: NUXT_RUNTIME_GLOB,
+        ignores: NUXT_RUNTIME_IGNORES,
+        plugins: pluginRef,
+        rules: {
+          '@nustack/nuxt/no-invalid-status-text': 'error',
+        },
+      },
+      {
         // App-source hygiene.
         name: 'nustack/nuxt/app',
         files: APP_GLOB,
@@ -173,6 +194,7 @@ export const noDeprecatedModules: Rule.RuleModule = plugin.rules!['no-deprecated
 export const noEmptyAsyncDataKey: Rule.RuleModule = plugin.rules!['no-empty-async-data-key'] as Rule.RuleModule
 export const noExplicitAutoImport: Rule.RuleModule = plugin.rules!['no-explicit-auto-import'] as Rule.RuleModule
 export const noIgnoredConfigFiles: Rule.RuleModule = plugin.rules!['no-ignored-config-files'] as Rule.RuleModule
+export const noInvalidStatusText: Rule.RuleModule = plugin.rules!['no-invalid-status-text'] as Rule.RuleModule
 export const noProcessEnv: Rule.RuleModule = plugin.rules!['no-process-env'] as Rule.RuleModule
 export const noProxyingUnsafeHeaders: Rule.RuleModule = plugin.rules!['no-proxying-unsafe-headers'] as Rule.RuleModule
 export const noRefOutsideSetup: Rule.RuleModule = plugin.rules!['no-ref-outside-setup'] as Rule.RuleModule
