@@ -4,6 +4,7 @@ import { headTagStyle as headTagStyleRule } from './rules/head-tag-style/index.j
 import { modulesOrder as modulesOrderRule } from './rules/modules-order/index.js'
 import { noAsyncDataAfterMount as noAsyncDataAfterMountRule } from './rules/no-async-data-after-mount/index.js'
 import { noDeprecatedModules as noDeprecatedModulesRule } from './rules/no-deprecated-modules/index.js'
+import { noEmptyAsyncDataKey as noEmptyAsyncDataKeyRule } from './rules/no-empty-async-data-key/index.js'
 import { noExplicitAutoImport as noExplicitAutoImportRule } from './rules/no-explicit-auto-import/index.js'
 import { noIgnoredConfigFiles as noIgnoredConfigFilesRule } from './rules/no-ignored-config-files/index.js'
 import { noProcessEnv as noProcessEnvRule } from './rules/no-process-env/index.js'
@@ -42,6 +43,7 @@ const plugin = eslintCompatPlugin({
     'modules-order': modulesOrderRule,
     'no-async-data-after-mount': noAsyncDataAfterMountRule,
     'no-deprecated-modules': noDeprecatedModulesRule,
+    'no-empty-async-data-key': noEmptyAsyncDataKeyRule,
     'no-explicit-auto-import': noExplicitAutoImportRule,
     'no-ignored-config-files': noIgnoredConfigFilesRule,
     'no-process-env': noProcessEnvRule,
@@ -136,6 +138,7 @@ export function nuxtConfigs(options: NuxtConfigsOptions = {}): Linter.Config[] {
           '@nustack/nuxt/head-tag-style': 'error',
           '@nustack/nuxt/lazy-fetch-style': 'error',
           '@nustack/nuxt/no-async-data-after-mount': 'error',
+          '@nustack/nuxt/no-empty-async-data-key': 'error',
           '@nustack/nuxt/no-process-env': 'warn',
           '@nustack/nuxt/no-proxying-unsafe-headers': 'error',
           '@nustack/nuxt/no-ref-outside-setup': 'error',
@@ -167,6 +170,7 @@ export const headTagStyle: Rule.RuleModule = plugin.rules!['head-tag-style'] as 
 export const modulesOrder: Rule.RuleModule = plugin.rules!['modules-order'] as Rule.RuleModule
 export const noAsyncDataAfterMount: Rule.RuleModule = plugin.rules!['no-async-data-after-mount'] as Rule.RuleModule
 export const noDeprecatedModules: Rule.RuleModule = plugin.rules!['no-deprecated-modules'] as Rule.RuleModule
+export const noEmptyAsyncDataKey: Rule.RuleModule = plugin.rules!['no-empty-async-data-key'] as Rule.RuleModule
 export const noExplicitAutoImport: Rule.RuleModule = plugin.rules!['no-explicit-auto-import'] as Rule.RuleModule
 export const noIgnoredConfigFiles: Rule.RuleModule = plugin.rules!['no-ignored-config-files'] as Rule.RuleModule
 export const noProcessEnv: Rule.RuleModule = plugin.rules!['no-process-env'] as Rule.RuleModule
