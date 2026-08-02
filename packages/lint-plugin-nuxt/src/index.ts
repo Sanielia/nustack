@@ -2,6 +2,7 @@ import type { ESLint, Linter, Rule } from 'eslint'
 import { eslintCompatPlugin } from '@oxlint/plugins'
 import { headTagStyle as headTagStyleRule } from './rules/head-tag-style/index.js'
 import { modulesOrder as modulesOrderRule } from './rules/modules-order/index.js'
+import { noAsyncDataAfterMount as noAsyncDataAfterMountRule } from './rules/no-async-data-after-mount/index.js'
 import { noDeprecatedModules as noDeprecatedModulesRule } from './rules/no-deprecated-modules/index.js'
 import { noExplicitAutoImport as noExplicitAutoImportRule } from './rules/no-explicit-auto-import/index.js'
 import { noIgnoredConfigFiles as noIgnoredConfigFilesRule } from './rules/no-ignored-config-files/index.js'
@@ -39,6 +40,7 @@ const plugin = eslintCompatPlugin({
   rules: {
     'head-tag-style': headTagStyleRule,
     'modules-order': modulesOrderRule,
+    'no-async-data-after-mount': noAsyncDataAfterMountRule,
     'no-deprecated-modules': noDeprecatedModulesRule,
     'no-explicit-auto-import': noExplicitAutoImportRule,
     'no-ignored-config-files': noIgnoredConfigFilesRule,
@@ -132,6 +134,8 @@ export function nuxtConfigs(options: NuxtConfigsOptions = {}): Linter.Config[] {
         plugins: pluginRef,
         rules: {
           '@nustack/nuxt/head-tag-style': 'error',
+          '@nustack/nuxt/lazy-fetch-style': 'error',
+          '@nustack/nuxt/no-async-data-after-mount': 'error',
           '@nustack/nuxt/no-process-env': 'warn',
           '@nustack/nuxt/no-proxying-unsafe-headers': 'error',
           '@nustack/nuxt/no-ref-outside-setup': 'error',
@@ -161,6 +165,7 @@ plugin.configs = {
 
 export const headTagStyle: Rule.RuleModule = plugin.rules!['head-tag-style'] as Rule.RuleModule
 export const modulesOrder: Rule.RuleModule = plugin.rules!['modules-order'] as Rule.RuleModule
+export const noAsyncDataAfterMount: Rule.RuleModule = plugin.rules!['no-async-data-after-mount'] as Rule.RuleModule
 export const noDeprecatedModules: Rule.RuleModule = plugin.rules!['no-deprecated-modules'] as Rule.RuleModule
 export const noExplicitAutoImport: Rule.RuleModule = plugin.rules!['no-explicit-auto-import'] as Rule.RuleModule
 export const noIgnoredConfigFiles: Rule.RuleModule = plugin.rules!['no-ignored-config-files'] as Rule.RuleModule
