@@ -2,6 +2,7 @@ import type { Rule } from '@oxlint/plugins'
 import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { docsUrl } from '../../utils/docs-url.js'
+import { basename } from '../../utils/path.js'
 
 const NUXT_CONFIG_PATTERN = /^nuxt\.config\.(?:js|mjs|cjs|ts|mts|cts)$/
 const DEFAULT_REFERENCE_PATHS = [
@@ -10,10 +11,6 @@ const DEFAULT_REFERENCE_PATHS = [
   './.nuxt/tsconfig.shared.json',
   './.nuxt/tsconfig.node.json',
 ]
-
-function basename(filename: string): string {
-  return filename.split(/[\\/]/).at(-1) ?? filename
-}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)

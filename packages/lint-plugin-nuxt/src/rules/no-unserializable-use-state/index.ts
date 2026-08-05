@@ -1,4 +1,5 @@
 import type { Rule } from '@oxlint/plugins'
+import { TRANSPARENT_EXPRESSION_NODES } from '../../utils/ast.js'
 import { docsUrl } from '../../utils/docs-url.js'
 
 const FUNCTION_NODES = new Set([
@@ -33,15 +34,6 @@ const SERIALIZABLE_CONSTRUCTORS = new Set([
   'Uint32Array',
   'URL',
   'URLSearchParams',
-])
-
-const TRANSPARENT_EXPRESSION_NODES = new Set([
-  'ChainExpression',
-  'TSAsExpression',
-  'TSInstantiationExpression',
-  'TSNonNullExpression',
-  'TSSatisfiesExpression',
-  'TSTypeAssertion',
 ])
 
 function calleeName(node: any): string | undefined {

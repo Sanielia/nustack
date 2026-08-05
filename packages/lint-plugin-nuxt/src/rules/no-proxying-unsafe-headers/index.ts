@@ -1,4 +1,5 @@
 import type { Rule } from '@oxlint/plugins'
+import { staticString } from '../../utils/ast.js'
 import { docsUrl } from '../../utils/docs-url.js'
 
 const UNSAFE_HEADERS = new Set([
@@ -13,16 +14,6 @@ const UNSAFE_HEADERS = new Set([
   'cf-connecting-ip',
   'cf-ray',
 ])
-
-function staticString(node: any): string | null {
-  if (node?.type === 'Literal' && typeof node.value === 'string')
-    return node.value
-
-  if (node?.type === 'TemplateLiteral' && node.expressions.length === 0)
-    return node.quasis[0]?.value.cooked ?? node.quasis[0]?.value.raw ?? null
-
-  return null
-}
 
 export const noProxyingUnsafeHeaders: Rule = {
   meta: {
@@ -48,8 +39,8 @@ export const noProxyingUnsafeHeaders: Rule = {
         }
 
         for (const element of node.arguments[0].elements) {
-          const header = staticString(element)
-          if (header !== null && UNSAFE_HEADERS.has(header.toLowerCase())) {
+          const header = staticString(element, { fallbackToRaw: true })
+          if (header !== undefined && UNSAFE_HEADERS.has(header.toLowerCase())) {
             context.report({
               node: element,
               messageId: 'unsafeHeader',

@@ -1,5 +1,7 @@
 import type { Rule } from '@oxlint/plugins'
+import { staticKeyName } from '../../utils/ast.js'
 import { docsUrl } from '../../utils/docs-url.js'
+import { nuxtModuleEntry } from '../../utils/nuxt-modules.js'
 
 interface DeprecatedModule {
   replacement: string
@@ -25,28 +27,6 @@ const DEPRECATED_MODULES: Record<string, DeprecatedModule> = {
   },
 }
 
-function staticKeyName(key: any): string | null {
-  if (key.type === 'Identifier')
-    return key.name
-  if (key.type === 'Literal' && typeof key.value === 'string')
-    return key.value
-  return null
-}
-
-/** A `modules` entry is either `'mod'` or `['mod', { ...options }]`. */
-function moduleEntry(element: any): { name: string, node: any } | null {
-  if (!element)
-    return null
-  if (element.type === 'Literal' && typeof element.value === 'string')
-    return { name: element.value, node: element }
-  if (element.type === 'ArrayExpression' && element.elements.length > 0) {
-    const first = element.elements[0]
-    if (first?.type === 'Literal' && typeof first.value === 'string')
-      return { name: first.value, node: first }
-  }
-  return null
-}
-
 export const noDeprecatedModules: Rule = {
   meta: {
     type: 'problem',
@@ -66,8 +46,8 @@ export const noDeprecatedModules: Rule = {
           return
 
         for (const element of node.value.elements) {
-          const entry = moduleEntry(element)
-          if (entry === null)
+          const entry = nuxtModuleEntry(element)
+          if (!entry)
             continue
           const deprecated = DEPRECATED_MODULES[entry.name]
           if (!deprecated)

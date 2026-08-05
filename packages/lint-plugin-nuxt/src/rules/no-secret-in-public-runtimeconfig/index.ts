@@ -1,43 +1,7 @@
 import type { Rule } from '@oxlint/plugins'
+import { staticKeyName } from '../../utils/ast.js'
 import { docsUrl } from '../../utils/docs-url.js'
-
-const SECRET_WORDS = new Set(['secret', 'token', 'password', 'private'])
-const PUBLIC_KEY_QUALIFIERS = new Set(['public', 'publishable', 'site'])
-
-function words(name: string): string[] {
-  return name
-    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
-    .split(/[^a-z0-9]+/i)
-    .map(word => word.toLowerCase())
-    .filter(Boolean)
-}
-
-function isSecretLike(name: string): boolean {
-  const parts = words(name)
-
-  if (parts.some(part => SECRET_WORDS.has(part)))
-    return true
-
-  if (!parts.includes('key'))
-    return false
-
-  if (parts.some(part => PUBLIC_KEY_QUALIFIERS.has(part)))
-    return false
-
-  // Common client SDK naming (`apiKey`) is intentionally public in Nuxt public runtime config.
-  if (parts.length === 2 && parts[0] === 'api' && parts[1] === 'key')
-    return false
-
-  return true
-}
-
-function staticKeyName(key: any): string | null {
-  if (key.type === 'Identifier')
-    return key.name
-  if (key.type === 'Literal' && typeof key.value === 'string')
-    return key.value
-  return null
-}
+import { isSecretLikeName } from '../../utils/secret-name.js'
 
 function findProperty(obj: any, name: string): any {
   return obj.properties.find(
@@ -63,7 +27,7 @@ export const noSecretInPublicRuntimeConfig: Rule = {
         if (property.type !== 'Property')
           continue
         const name = staticKeyName(property.key)
-        if (name && isSecretLike(name)) {
+        if (name && isSecretLikeName(name)) {
           context.report({
             node: property.key,
             messageId: 'secretInPublic',

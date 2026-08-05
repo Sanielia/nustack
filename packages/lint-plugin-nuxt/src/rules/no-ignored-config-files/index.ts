@@ -1,5 +1,6 @@
 import type { Rule } from '@oxlint/plugins'
 import { docsUrl } from '../../utils/docs-url.js'
+import { basename } from '../../utils/path.js'
 
 const IGNORED_CONFIG_KEYS: Record<string, string> = {
   nitro: 'nitro',
@@ -9,10 +10,6 @@ const IGNORED_CONFIG_KEYS: Record<string, string> = {
 }
 
 const IGNORED_CONFIG_PATTERN = /^(nitro|postcss|vite|webpack)\.config\.(?:js|mjs|cjs|ts|mts|cts)$/
-
-function basename(filename: string): string {
-  return filename.split(/[\\/]/).at(-1) ?? filename
-}
 
 export const noIgnoredConfigFiles: Rule = {
   meta: {
