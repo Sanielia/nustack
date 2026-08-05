@@ -1,4 +1,4 @@
-import type { Rule } from '@oxlint/plugins'
+import type { Context, ESTree, Rule, Visitor } from '@oxlint/plugins'
 import { staticKeyName } from '../../utils/ast.js'
 import { docsUrl } from '../../utils/docs-url.js'
 import { nuxtModuleEntry } from '../../utils/nuxt-modules.js'
@@ -39,9 +39,9 @@ export const noDeprecatedModules: Rule = {
       deprecated: '`{{ name }}` is deprecated, use {{ replacement }} instead. {{ reason }} Migration guide: {{ docs }}.',
     },
   },
-  createOnce(context: any) {
+  createOnce(context: Context): Visitor {
     return {
-      Property(node: any) {
+      Property(node: ESTree.ObjectProperty): void {
         if (staticKeyName(node.key) !== 'modules' || node.value.type !== 'ArrayExpression')
           return
 

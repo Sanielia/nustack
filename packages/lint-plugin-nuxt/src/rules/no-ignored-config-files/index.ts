@@ -1,4 +1,4 @@
-import type { Rule } from '@oxlint/plugins'
+import type { Context, ESTree, Rule, Visitor } from '@oxlint/plugins'
 import { docsUrl } from '../../utils/docs-url.js'
 import { basename } from '../../utils/path.js'
 
@@ -23,9 +23,9 @@ export const noIgnoredConfigFiles: Rule = {
       ignoredConfig: '`{{ filename }}` is ignored by Nuxt. Move this configuration to the `{{ key }}` key in `nuxt.config`.',
     },
   },
-  createOnce(context: any) {
+  createOnce(context: Context): Visitor {
     return {
-      Program(node: any) {
+      Program(node: ESTree.Program): void {
         const filename = basename(context.physicalFilename || context.filename)
         const configName = IGNORED_CONFIG_PATTERN.exec(filename)?.[1]
         const key = configName ? IGNORED_CONFIG_KEYS[configName] : undefined

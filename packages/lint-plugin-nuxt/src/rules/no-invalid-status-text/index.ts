@@ -1,6 +1,6 @@
 // FIXME: This rule should be removed after migration to oxlint, because `statusText` property is deprecated and oxlint detects it properly
 
-import type { Rule } from '@oxlint/plugins'
+import type { Context, ESTree, Rule, Visitor } from '@oxlint/plugins'
 import { staticPropertyName, staticString, unwrapExpression } from '../../utils/ast.js'
 import { docsUrl } from '../../utils/docs-url.js'
 import { createImportedCallMatcher } from '../../utils/imports.js'
@@ -19,7 +19,7 @@ export const noInvalidStatusText: Rule = {
       invalidStatusText: '`statusText` may contain only horizontal tabs, spaces, and visible ASCII characters. Use `message` for detailed, multi-line, or non-ASCII content.',
     },
   },
-  create(context: any) {
+  create(context: Context): Visitor {
     const sourceCode = context.sourceCode
     const { collectImports, importedCallName } = createImportedCallMatcher(sourceCode, {
       importSources: CREATE_ERROR_IMPORT_SOURCES,
@@ -28,11 +28,14 @@ export const noInvalidStatusText: Rule = {
 
     return {
       Program: collectImports,
-      CallExpression(node: any) {
+      CallExpression(node: ESTree.CallExpression): void {
         if (importedCallName(node) !== 'createError')
           return
 
-        const details = unwrapExpression(node.arguments[0])
+        const argument = node.arguments[0]
+        if (!argument || argument.type === 'SpreadElement')
+          return
+        const details = unwrapExpression(argument)
         if (details?.type !== 'ObjectExpression')
           return
 

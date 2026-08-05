@@ -1,3 +1,13 @@
+import type { ESTree } from '@oxlint/plugins'
+
+export type TransparentExpression
+  = | ESTree.ChainExpression
+    | ESTree.TSAsExpression
+    | ESTree.TSInstantiationExpression
+    | ESTree.TSNonNullExpression
+    | ESTree.TSSatisfiesExpression
+    | ESTree.TSTypeAssertion
+
 export const TRANSPARENT_EXPRESSION_NODES = new Set([
   'ChainExpression',
   'TSAsExpression',
@@ -7,26 +17,38 @@ export const TRANSPARENT_EXPRESSION_NODES = new Set([
   'TSTypeAssertion',
 ])
 
-export function unwrapExpression(node: any): any {
-  while (TRANSPARENT_EXPRESSION_NODES.has(node?.type))
-    node = node.expression
-  return node
+export function isTransparentExpression(node: ESTree.Node | null | undefined): node is TransparentExpression {
+  return node !== null && node !== undefined && TRANSPARENT_EXPRESSION_NODES.has(node.type)
 }
 
-export function staticLiteralString(node: any): string | undefined {
+export function unwrapExpression(node: ESTree.Expression): ESTree.Expression
+export function unwrapExpression(node: ESTree.Expression | null | undefined): ESTree.Expression | undefined
+export function unwrapExpression(node: ESTree.Expression | null | undefined): ESTree.Expression | undefined {
+  while (isTransparentExpression(node))
+    node = node.expression ?? undefined
+  return node ?? undefined
+}
+
+export function staticLiteralString(node: ESTree.Node | null | undefined): string | undefined {
   return node?.type === 'Literal' && typeof node.value === 'string'
     ? node.value
     : undefined
 }
 
-export function staticKeyName(key: any): string | undefined {
+export function staticKeyName(key: ESTree.Node | null | undefined): string | undefined {
   if (key?.type === 'Identifier')
     return key.name
   return staticLiteralString(key)
 }
 
-export function staticPropertyName(node: any, literalRequiresComputed = false): string | undefined {
-  const property = node?.key ?? node?.property
+type PropertyLike
+  = | ESTree.AssignmentTargetPropertyProperty
+    | ESTree.MemberExpression
+    | ESTree.MethodDefinition
+    | ESTree.ObjectProperty
+
+export function staticPropertyName(node: PropertyLike, literalRequiresComputed = false): string | undefined {
+  const property = 'key' in node ? node.key : node.property
   if (node?.computed && property?.type === 'Identifier')
     return
   if (literalRequiresComputed && !node?.computed && property?.type === 'Literal')
@@ -39,8 +61,10 @@ interface StaticStringOptions {
   unwrap?: boolean
 }
 
-export function staticString(node: any, options: StaticStringOptions = {}): string | undefined {
-  const expression = options.unwrap ? unwrapExpression(node) : node
+export function staticString(node: ESTree.Node | null | undefined, options: StaticStringOptions = {}): string | undefined {
+  const expression = options.unwrap && node && 'type' in node
+    ? unwrapExpression(node as ESTree.Expression)
+    : node
   const literal = staticLiteralString(expression)
   if (literal !== undefined)
     return literal

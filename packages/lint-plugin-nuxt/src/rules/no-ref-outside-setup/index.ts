@@ -1,22 +1,24 @@
-import type { Rule } from '@oxlint/plugins'
-import { staticPropertyName, TRANSPARENT_EXPRESSION_NODES } from '../../utils/ast.js'
+import type { Context, ESTree, Rule, Visitor } from '@oxlint/plugins'
+import { isTransparentExpression, staticPropertyName } from '../../utils/ast.js'
 import { docsUrl } from '../../utils/docs-url.js'
 import { createImportedCallMatcher } from '../../utils/imports.js'
 import { isInRanges, scriptSetupRanges } from '../../utils/vue.js'
 
-const FUNCTION_NODES = new Set([
-  'ArrowFunctionExpression',
-  'FunctionDeclaration',
-  'FunctionExpression',
-])
+type FunctionNode = ESTree.ArrowFunctionExpression | ESTree.Function
 
-function isSetupFunction(node: any): boolean {
+function isFunctionNode(node: ESTree.Node): node is FunctionNode {
+  return node.type === 'ArrowFunctionExpression'
+    || node.type === 'FunctionDeclaration'
+    || node.type === 'FunctionExpression'
+}
+
+function isSetupFunction(node: FunctionNode): boolean {
   if (node.id?.type === 'Identifier' && node.id.name === 'setup')
     return true
 
-  let expression = node
-  let parent = node.parent
-  while (TRANSPARENT_EXPRESSION_NODES.has(parent?.type) && parent.expression === expression) {
+  let expression: ESTree.Node = node
+  let parent: ESTree.Node | null = node.parent
+  while (isTransparentExpression(parent) && parent.expression === expression) {
     expression = parent
     parent = parent.parent
   }
@@ -42,7 +44,7 @@ export const noRefOutsideSetup: Rule = {
       outsideSetup: '`ref()` outside `<script setup>` or `setup()` can create state shared across server requests. Use an SSR-safe `useState()` composable instead.',
     },
   },
-  create(context: any) {
+  create(context: Context): Visitor {
     const sourceCode = context.sourceCode
     const setupRanges = scriptSetupRanges(sourceCode.parserServices)
     const { collectImports, importedCallName } = createImportedCallMatcher(sourceCode, {
@@ -51,9 +53,9 @@ export const noRefOutsideSetup: Rule = {
       includeTypeImports: true,
     })
 
-    function isInsideSetupFunction(node: any): boolean {
-      for (let ancestor = node.parent; ancestor; ancestor = ancestor.parent) {
-        if (FUNCTION_NODES.has(ancestor.type) && isSetupFunction(ancestor))
+    function isInsideSetupFunction(node: ESTree.CallExpression): boolean {
+      for (let ancestor: ESTree.Node | null = node.parent; ancestor; ancestor = ancestor.parent) {
+        if (isFunctionNode(ancestor) && isSetupFunction(ancestor))
           return true
       }
       return false
@@ -61,7 +63,7 @@ export const noRefOutsideSetup: Rule = {
 
     return {
       Program: collectImports,
-      CallExpression(node: any) {
+      CallExpression(node: ESTree.CallExpression): void {
         if (importedCallName(node) !== 'ref')
           return
         if (isInRanges(node, setupRanges) || isInsideSetupFunction(node))

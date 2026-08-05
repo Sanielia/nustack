@@ -1,4 +1,4 @@
-import type { Rule } from '@oxlint/plugins'
+import type { Context, ESTree, Rule, Visitor } from '@oxlint/plugins'
 import { staticString } from '../../utils/ast.js'
 import { docsUrl } from '../../utils/docs-url.js'
 
@@ -27,9 +27,9 @@ export const noProxyingUnsafeHeaders: Rule = {
       unsafeHeader: '`{{ header }}` is not safe to proxy. Only forward the client headers that the target API needs.',
     },
   },
-  createOnce(context: any) {
+  createOnce(context: Context): Visitor {
     return {
-      CallExpression(node: any) {
+      CallExpression(node: ESTree.CallExpression): void {
         if (
           node.callee?.type !== 'Identifier'
           || node.callee.name !== 'useRequestHeaders'
@@ -39,6 +39,8 @@ export const noProxyingUnsafeHeaders: Rule = {
         }
 
         for (const element of node.arguments[0].elements) {
+          if (!element)
+            continue
           const header = staticString(element, { fallbackToRaw: true })
           if (header !== undefined && UNSAFE_HEADERS.has(header.toLowerCase())) {
             context.report({

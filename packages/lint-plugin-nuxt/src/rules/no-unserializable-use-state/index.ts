@@ -1,11 +1,8 @@
-import type { Rule } from '@oxlint/plugins'
-import { TRANSPARENT_EXPRESSION_NODES } from '../../utils/ast.js'
+import type { Context, ESTree, Rule, Visitor } from '@oxlint/plugins'
+import { isTransparentExpression } from '../../utils/ast.js'
 import { docsUrl } from '../../utils/docs-url.js'
 
-const FUNCTION_NODES = new Set([
-  'ArrowFunctionExpression',
-  'FunctionExpression',
-])
+type Initializer = ESTree.ArrowFunctionExpression | ESTree.Function
 
 const SERIALIZABLE_CONSTRUCTORS = new Set([
   'Array',
@@ -36,7 +33,7 @@ const SERIALIZABLE_CONSTRUCTORS = new Set([
   'URLSearchParams',
 ])
 
-function calleeName(node: any): string | undefined {
+function calleeName(node: ESTree.Expression): string | undefined {
   if (node.type === 'Identifier')
     return node.name
 
@@ -47,15 +44,15 @@ function calleeName(node: any): string | undefined {
   }
 }
 
-function isSymbolExpression(node: any): boolean {
+function isSymbolExpression(node: ESTree.Expression): boolean {
   if (node.type === 'MemberExpression' && node.object.type === 'Identifier' && node.object.name === 'Symbol')
     return true
   return node.type === 'CallExpression'
     && (calleeName(node.callee) === 'Symbol' || isSymbolExpression(node.callee))
 }
 
-function unsupportedType(node: any): string | undefined {
-  if (FUNCTION_NODES.has(node.type))
+function unsupportedType(node: ESTree.Expression): string | undefined {
+  if (node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression')
     return 'a function'
   if (node.type === 'ClassExpression')
     return 'a class'
@@ -69,8 +66,14 @@ function unsupportedType(node: any): string | undefined {
   }
 }
 
-function initializer(call: any): any | undefined {
-  return call.arguments.find((argument: any, index: number) => index < 2 && FUNCTION_NODES.has(argument.type))
+function isInitializer(node: ESTree.Argument): node is Initializer {
+  return node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression'
+}
+
+function initializer(call: ESTree.CallExpression): Initializer | undefined {
+  return call.arguments.find((argument: ESTree.Argument, index: number): argument is Initializer =>
+    index < 2 && isInitializer(argument),
+  )
 }
 
 export const noUnserializableUseState: Rule = {
@@ -85,25 +88,26 @@ export const noUnserializableUseState: Rule = {
       unserializable: '`useState()` initializes with {{ type }}, which Nuxt\'s default payload serializer cannot serialize.',
     },
   },
-  create(context: any) {
-    function report(node: any, type: string): void {
+  create(context: Context): Visitor {
+    function report(node: ESTree.Node, type: string): void {
       context.report({ node, messageId: 'unserializable', data: { type } })
     }
 
-    function checkObjectKey(property: any): void {
-      if (property.computed && isSymbolExpression(property.key))
+    function checkObjectKey(property: ESTree.ObjectProperty): void {
+      if (property.computed && isSymbolExpression(property.key as ESTree.Expression))
         report(property.key, 'a symbol-keyed property')
     }
 
-    function checkValue(node: any): void {
+    function checkValue(node: ESTree.Expression): void {
       const type = unsupportedType(node)
       if (type) {
         report(node, type)
         return
       }
 
-      if (TRANSPARENT_EXPRESSION_NODES.has(node.type)) {
-        checkValue(node.expression)
+      if (isTransparentExpression(node)) {
+        if (node.expression)
+          checkValue(node.expression)
         return
       }
 
@@ -138,23 +142,23 @@ export const noUnserializableUseState: Rule = {
           break
         case 'SequenceExpression':
           if (node.expressions.length)
-            checkValue(node.expressions.at(-1))
+            checkValue(node.expressions.at(-1)!)
           break
       }
     }
 
-    function checkReturns(node: any): void {
+    function checkReturns(node: ESTree.Node): void {
       if (node.type === 'ReturnStatement') {
         if (node.argument)
           checkValue(node.argument)
         return
       }
-      if (FUNCTION_NODES.has(node.type))
+      if (node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression')
         return
 
       const keys = context.sourceCode.visitorKeys[node.type] ?? []
       for (const key of keys) {
-        const child = node[key]
+        const child = (node as ESTree.Node & Record<string, ESTree.Node | ESTree.Node[] | null | undefined>)[key]
         if (Array.isArray(child)) {
           for (const item of child) {
             if (item?.type)
@@ -168,7 +172,7 @@ export const noUnserializableUseState: Rule = {
     }
 
     return {
-      CallExpression(node: any) {
+      CallExpression(node: ESTree.CallExpression): void {
         if (node.callee.type !== 'Identifier' || node.callee.name !== 'useState')
           return
 
@@ -183,6 +187,8 @@ export const noUnserializableUseState: Rule = {
           report(init, 'a generator')
           return
         }
+        if (!init.body)
+          return
         if (init.body.type === 'BlockStatement')
           checkReturns(init.body)
         else

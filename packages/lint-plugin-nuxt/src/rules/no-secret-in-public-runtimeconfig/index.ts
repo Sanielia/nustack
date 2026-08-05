@@ -1,11 +1,12 @@
-import type { Rule } from '@oxlint/plugins'
+import type { Context, ESTree, Rule, Visitor } from '@oxlint/plugins'
 import { staticKeyName } from '../../utils/ast.js'
 import { docsUrl } from '../../utils/docs-url.js'
 import { isSecretLikeName } from '../../utils/secret-name.js'
 
-function findProperty(obj: any, name: string): any {
+function findProperty(obj: ESTree.ObjectExpression, name: string): ESTree.ObjectProperty | undefined {
   return obj.properties.find(
-    (property: any) => property.type === 'Property' && staticKeyName(property.key) === name,
+    (property: ESTree.ObjectPropertyKind): property is ESTree.ObjectProperty =>
+      property.type === 'Property' && staticKeyName(property.key) === name,
   )
 }
 
@@ -21,8 +22,8 @@ export const noSecretInPublicRuntimeConfig: Rule = {
       secretInPublic: '`{{ key }}` is under `runtimeConfig.public`, which is serialized into the client bundle and exposed to the browser. Move it to private `runtimeConfig` so it stays server-only.',
     },
   },
-  createOnce(context: any) {
-    function scan(obj: any): void {
+  createOnce(context: Context): Visitor {
+    function scan(obj: ESTree.ObjectExpression): void {
       for (const property of obj.properties) {
         if (property.type !== 'Property')
           continue
@@ -40,7 +41,7 @@ export const noSecretInPublicRuntimeConfig: Rule = {
     }
 
     return {
-      Property(node: any) {
+      Property(node: ESTree.ObjectProperty): void {
         if (staticKeyName(node.key) !== 'runtimeConfig' || node.value.type !== 'ObjectExpression')
           return
         const publicProperty = findProperty(node.value, 'public')

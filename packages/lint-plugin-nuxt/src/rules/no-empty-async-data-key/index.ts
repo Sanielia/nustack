@@ -1,4 +1,4 @@
-import type { Rule } from '@oxlint/plugins'
+import type { Context, ESTree, Rule, Visitor } from '@oxlint/plugins'
 import { staticString } from '../../utils/ast.js'
 import { docsUrl } from '../../utils/docs-url.js'
 import { createImportedCallMatcher } from '../../utils/imports.js'
@@ -8,7 +8,7 @@ const ASYNC_DATA_COMPOSABLES = new Set([
   'useLazyAsyncData',
 ])
 const NUXT_IMPORT_SOURCES = new Set(['#app', '#imports', 'nuxt/app'])
-function isEmptyString(node: any): boolean {
+function isEmptyString(node: ESTree.Argument): boolean {
   return staticString(node, { unwrap: true }) === ''
 }
 
@@ -24,7 +24,7 @@ export const noEmptyAsyncDataKey: Rule = {
       emptyKey: '`{{ name }}` key must be a non-empty string. Pass a non-empty string as the first argument to `{{ name }}()`.',
     },
   },
-  create(context: any) {
+  create(context: Context): Visitor {
     const sourceCode = context.sourceCode
     const { collectImports, importedCallName } = createImportedCallMatcher(sourceCode, {
       importSources: NUXT_IMPORT_SOURCES,
@@ -33,7 +33,7 @@ export const noEmptyAsyncDataKey: Rule = {
 
     return {
       Program: collectImports,
-      CallExpression(node: any) {
+      CallExpression(node: ESTree.CallExpression): void {
         const name = importedCallName(node)
         const key = node.arguments[0]
         if (!name || !key || key.type === 'SpreadElement' || !isEmptyString(key))

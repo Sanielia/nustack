@@ -1,3 +1,4 @@
+import type { ESTree, SourceCode, Variable } from '@oxlint/plugins'
 import { staticPropertyName, unwrapExpression } from './ast.js'
 import { findVariable } from './scope.js'
 
@@ -7,14 +8,16 @@ interface ImportedCallMatcherOptions {
   includeTypeImports?: boolean
 }
 
-export function createImportedCallMatcher(sourceCode: any, options: ImportedCallMatcherOptions): {
-  collectImports: (program: any) => void
-  importedCallName: (call: any) => string | undefined
+export function createImportedCallMatcher(sourceCode: SourceCode, options: ImportedCallMatcherOptions): {
+  collectImports: (program: ESTree.Program) => void
+  importedCallName: (call: ESTree.CallExpression) => string | undefined
 } {
-  const importedNames = new Map<any, string>()
-  const importedNamespaces = new Set<any>()
+  type VariableIdentifier = Variable['identifiers'][number]
 
-  function collectImports(program: any): void {
+  const importedNames = new Map<VariableIdentifier, string>()
+  const importedNamespaces = new Set<VariableIdentifier>()
+
+  function collectImports(program: ESTree.Program): void {
     for (const node of program.body) {
       if (node.type !== 'ImportDeclaration' || !options.importSources.has(String(node.source.value)))
         continue
@@ -38,13 +41,13 @@ export function createImportedCallMatcher(sourceCode: any, options: ImportedCall
     }
   }
 
-  function importedCallName(call: any): string | undefined {
+  function importedCallName(call: ESTree.CallExpression): string | undefined {
     const callee = unwrapExpression(call.callee)
     if (callee?.type === 'Identifier') {
       const variable = findVariable(sourceCode, callee, callee.name)
       if (variable) {
-        const identifier = variable.identifiers?.find((item: any) => importedNames.has(item))
-        const importedName = importedNames.get(identifier)
+        const identifier = variable.identifiers.find(item => importedNames.has(item))
+        const importedName = identifier ? importedNames.get(identifier) : undefined
         if (importedName)
           return importedName
         if (variable.defs?.length !== 0)
@@ -64,7 +67,7 @@ export function createImportedCallMatcher(sourceCode: any, options: ImportedCall
     if (object?.type !== 'Identifier')
       return
     const variable = findVariable(sourceCode, object, object.name)
-    return variable?.identifiers?.some((identifier: any) => importedNamespaces.has(identifier))
+    return variable?.identifiers.some(identifier => importedNamespaces.has(identifier))
       ? name
       : undefined
   }

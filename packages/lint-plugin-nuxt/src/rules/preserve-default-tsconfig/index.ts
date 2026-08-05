@@ -1,4 +1,4 @@
-import type { Rule } from '@oxlint/plugins'
+import type { Context, ESTree, Rule, Visitor } from '@oxlint/plugins'
 import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { docsUrl } from '../../utils/docs-url.js'
@@ -45,9 +45,9 @@ export const preserveDefaultTsconfig: Rule = {
       modifiedTsconfig: 'Preserve Nuxt\'s default root `tsconfig.json` unchanged. Configure TypeScript through `nuxt.config.ts` instead.',
     },
   },
-  createOnce(context: any) {
+  createOnce(context: Context): Visitor {
     return {
-      Program(node: any) {
+      Program(node: ESTree.Program): void {
         const filename = context.physicalFilename || context.filename
         if (!NUXT_CONFIG_PATTERN.test(basename(filename)))
           return

@@ -1,5 +1,5 @@
-import type { Rule } from '@oxlint/plugins'
-import { staticPropertyName, TRANSPARENT_EXPRESSION_NODES, unwrapExpression } from '../../utils/ast.js'
+import type { Context, ESTree, Rule, Visitor } from '@oxlint/plugins'
+import { isTransparentExpression, staticPropertyName, unwrapExpression } from '../../utils/ast.js'
 import { docsUrl } from '../../utils/docs-url.js'
 import { createImportedCallMatcher } from '../../utils/imports.js'
 import { isInRanges, scriptSetupRanges } from '../../utils/vue.js'
@@ -12,23 +12,26 @@ const ASYNC_DATA_COMPOSABLES = new Set([
 ])
 
 const NUXT_IMPORT_SOURCES = new Set(['#app', '#imports', 'nuxt/app'])
-const FUNCTION_NODES = new Set([
-  'ArrowFunctionExpression',
-  'FunctionDeclaration',
-  'FunctionExpression',
-])
 const NUXT_INITIALIZER_FACTORIES = new Set([
   'defineNuxtPlugin',
   'defineNuxtRouteMiddleware',
 ])
 
-function functionName(node: any): string | undefined {
+type FunctionNode = ESTree.ArrowFunctionExpression | ESTree.Function
+
+function isFunctionNode(node: ESTree.Node): node is FunctionNode {
+  return node.type === 'ArrowFunctionExpression'
+    || node.type === 'FunctionDeclaration'
+    || node.type === 'FunctionExpression'
+}
+
+function functionName(node: FunctionNode): string | undefined {
   if (node.id?.type === 'Identifier')
     return node.id.name
 
-  let expression = node
-  let parent = node.parent
-  while (TRANSPARENT_EXPRESSION_NODES.has(parent?.type) && parent.expression === expression) {
+  let expression: ESTree.Node = node
+  let parent: ESTree.Node | null = node.parent
+  while (isTransparentExpression(parent) && parent.expression === expression) {
     expression = parent
     parent = parent.parent
   }
@@ -39,10 +42,10 @@ function functionName(node: any): string | undefined {
     return staticPropertyName(parent, true)
 }
 
-function isNuxtInitializerCallback(node: any): boolean {
-  let expression = node
-  let parent = node.parent
-  while (TRANSPARENT_EXPRESSION_NODES.has(parent?.type) && parent.expression === expression) {
+function isNuxtInitializerCallback(node: FunctionNode): boolean {
+  let expression: ESTree.Node = node
+  let parent: ESTree.Node | null = node.parent
+  while (isTransparentExpression(parent) && parent.expression === expression) {
     expression = parent
     parent = parent.parent
   }
@@ -54,7 +57,7 @@ function isNuxtInitializerCallback(node: any): boolean {
   return callee.type === 'Identifier' && NUXT_INITIALIZER_FACTORIES.has(callee.name)
 }
 
-function isInitialExecutionFunction(node: any): boolean {
+function isInitialExecutionFunction(node: FunctionNode): boolean {
   const name = functionName(node)
   return name === 'setup' || /^use[A-Z0-9]/.test(name ?? '') || isNuxtInitializerCallback(node)
 }
@@ -71,7 +74,7 @@ export const noAsyncDataAfterMount: Rule = {
       afterMount: '`{{ name }}()` can run after the component has mounted and cannot be awaited during setup. Move it to setup or use `$fetch()` for requests triggered later.',
     },
   },
-  create(context: any) {
+  create(context: Context): Visitor {
     const sourceCode = context.sourceCode
     const setupRanges = scriptSetupRanges(sourceCode.parserServices)
     const { collectImports, importedCallName } = createImportedCallMatcher(sourceCode, {
@@ -79,9 +82,9 @@ export const noAsyncDataAfterMount: Rule = {
       names: ASYNC_DATA_COMPOSABLES,
     })
 
-    function isInitialExecutionContext(node: any): boolean {
-      for (let ancestor = node.parent; ancestor; ancestor = ancestor.parent) {
-        if (FUNCTION_NODES.has(ancestor.type))
+    function isInitialExecutionContext(node: ESTree.CallExpression): boolean {
+      for (let ancestor: ESTree.Node | null = node.parent; ancestor; ancestor = ancestor.parent) {
+        if (isFunctionNode(ancestor))
           return isInitialExecutionFunction(ancestor)
       }
       return isInRanges(node, setupRanges)
@@ -89,7 +92,7 @@ export const noAsyncDataAfterMount: Rule = {
 
     return {
       Program: collectImports,
-      CallExpression(node: any) {
+      CallExpression(node: ESTree.CallExpression): void {
         const name = importedCallName(node)
         if (!name || isInitialExecutionContext(node))
           return
