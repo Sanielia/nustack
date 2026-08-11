@@ -24,6 +24,12 @@ export const IGNORED_NUXT_CONFIG_GLOB = [
   '**/vite.config.{js,mjs,cjs,ts,mts,cts}',
   '**/webpack.config.{js,mjs,cjs,ts,mts,cts}',
 ]
+const ROOT_IGNORED_NUXT_CONFIG_GLOB = [
+  'nitro.config.{js,mjs,cjs,ts,mts,cts}',
+  'postcss.config.{js,mjs,cjs,ts,mts,cts}',
+  'vite.config.{js,mjs,cjs,ts,mts,cts}',
+  'webpack.config.{js,mjs,cjs,ts,mts,cts}',
+]
 /** App source, where auto-import / `process.env` rules apply. */
 export const APP_GLOB = ['**/*.vue', '**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}']
 /** Non-app paths excluded from app-source rules (build/server/tooling). */
@@ -101,8 +107,13 @@ export function nuxtConfigs(options: NuxtConfigsOptions = {}): Linter.Config[] {
     autoImports,
     components,
     payloadSerializableConstructors = [],
+    projectDirectories = ['.'],
     rules,
   } = options
+  const externalConfigGlobs = projectDirectories.flatMap((directory) => {
+    const prefix = directory.replaceAll('\\', '/').replace(/^\.\//, '').replace(/\/$/, '')
+    return ROOT_IGNORED_NUXT_CONFIG_GLOB.map(glob => prefix && prefix !== '.' ? `${prefix}/${glob}` : glob)
+  })
 
   const configs: Linter.Config[] = [
     {
@@ -130,7 +141,7 @@ export function nuxtConfigs(options: NuxtConfigsOptions = {}): Linter.Config[] {
       {
         // Nuxt ignores these files; their configuration belongs in `nuxt.config`.
         name: 'nustack/nuxt/external-config',
-        files: IGNORED_NUXT_CONFIG_GLOB,
+        files: externalConfigGlobs,
         plugins: pluginRef,
         rules: {
           '@nustack/nuxt/no-ignored-config-files': 'error',

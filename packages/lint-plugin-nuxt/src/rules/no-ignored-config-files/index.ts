@@ -1,4 +1,6 @@
 import type { Context, ESTree, Rule, Visitor } from '@oxlint/plugins'
+import { existsSync } from 'node:fs'
+import { dirname, join } from 'node:path'
 import { docsUrl } from '../../utils/docs-url.js'
 import { basename } from '../../utils/path.js'
 
@@ -10,6 +12,12 @@ const IGNORED_CONFIG_KEYS: Record<string, string> = {
 }
 
 const IGNORED_CONFIG_PATTERN = /^(nitro|postcss|vite|webpack)\.config\.(?:js|mjs|cjs|ts|mts|cts)$/
+const NUXT_CONFIG_FILENAMES = ['nuxt.config.js', 'nuxt.config.mjs', 'nuxt.config.cjs', 'nuxt.config.ts', 'nuxt.config.mts', 'nuxt.config.cts']
+
+function belongsToNuxtProject(filename: string): boolean {
+  const directory = dirname(filename)
+  return NUXT_CONFIG_FILENAMES.some(config => existsSync(join(directory, config)))
+}
 
 export const noIgnoredConfigFiles: Rule = {
   meta: {
@@ -26,10 +34,11 @@ export const noIgnoredConfigFiles: Rule = {
   createOnce(context: Context): Visitor {
     return {
       Program(node: ESTree.Program): void {
-        const filename = basename(context.physicalFilename || context.filename)
+        const physicalFilename = context.physicalFilename || context.filename
+        const filename = basename(physicalFilename)
         const configName = IGNORED_CONFIG_PATTERN.exec(filename)?.[1]
         const key = configName ? IGNORED_CONFIG_KEYS[configName] : undefined
-        if (!key)
+        if (!key || !belongsToNuxtProject(physicalFilename))
           return
 
         context.report({
