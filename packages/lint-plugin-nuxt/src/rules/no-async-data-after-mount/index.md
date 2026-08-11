@@ -12,6 +12,9 @@ onMounted(() => {
   useFetch('/api/posts')
 })
 
+const usePosts = () => useFetch('/api/posts')
+onMounted(usePosts)
+
 function handleClick() {
   useAsyncData('posts', () => $fetch('/api/posts'))
 }
@@ -43,5 +46,7 @@ export function usePosts() {
 ```
 
 The rule recognizes Nuxt auto-imports, named imports and aliases from `#app`, `#imports`, and `nuxt/app`, and Nuxt namespace imports. Calls are allowed directly in `<script setup>`, `setup()`, `use*` composables, Nuxt plugin initialization, and route middleware. Nested functions are treated as deferred because static analysis cannot prove that they run synchronously during setup.
+
+Direct references to custom `use*` composables are also checked when passed to known deferred callback positions, including Vue lifecycle/watch APIs, timers, Promise handlers, event listeners, and runtime hooks. The analysis intentionally does not follow assignments or arbitrary callback APIs.
 
 See [Nuxt's data fetching guide](https://nuxt.com/docs/4.x/getting-started/data-fetching) and [`useAsyncData` documentation](https://nuxt.com/docs/4.x/api/composables/use-async-data).

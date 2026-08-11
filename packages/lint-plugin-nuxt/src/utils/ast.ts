@@ -71,7 +71,9 @@ export function staticKeyName(key: ESTree.Node | null | undefined): string | und
 }
 
 type PropertyLike
-  = | ESTree.AssignmentTargetPropertyProperty
+  = | ESTree.AssignmentTargetPropertyIdentifier
+    | ESTree.AssignmentTargetPropertyProperty
+    | ESTree.BindingProperty
     | ESTree.MemberExpression
     | ESTree.MethodDefinition
     | ESTree.ObjectProperty
