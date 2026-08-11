@@ -3,7 +3,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { Linter } from 'eslint'
 import { describe, expect, it } from 'vitest'
-import { definesPayloadReducer, generateCode } from '../src/addon'
+import { generateCode } from '../src/addon'
 import { EMPTY_CONTEXT } from '../src/context'
 
 describe('generateCode', () => {
@@ -21,13 +21,6 @@ describe('generateCode', () => {
     expect(code).toContain('export function nustack')
     expect(code).toContain('export const nustackLint = nustack')
     expect(code).toContain('export default nustack()')
-  })
-})
-
-describe('definesPayloadReducer', () => {
-  it('detects direct custom payload reducer registration', () => {
-    expect(definesPayloadReducer(`definePayloadReducer('User', value => value)`)).toBe(true)
-    expect(definesPayloadReducer(`definePayloadReviver('User', value => value)`)).toBe(false)
   })
 })
 

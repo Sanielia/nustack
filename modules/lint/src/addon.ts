@@ -8,13 +8,6 @@ import { resolveAlias } from '@nuxt/kit'
 import { resolveModuleFlags } from './context/module-flags'
 
 const TAILWIND_IMPORT_PATTERN = /@import\s+["']tailwindcss["']/
-const PAYLOAD_REDUCER_PATTERN = /\bdefinePayloadReducer\s*\(/
-
-/** Whether a plugin source directly registers custom Nuxt payload serialization. */
-export function definesPayloadReducer(source: string): boolean {
-  return PAYLOAD_REDUCER_PATTERN.test(source)
-}
-
 interface NitroWithUnimport {
   unimport?: Unimport
 }
@@ -26,7 +19,6 @@ export function setupNustackContext(nuxt: Nuxt): void {
   let unimport: Unimport | undefined
   let nitroUnimport: Unimport | undefined
   let components: string[] = []
-  let plugins: string[] = []
 
   nuxt.hook('imports:context', (importsContext) => {
     unimport = importsContext
@@ -36,9 +28,6 @@ export function setupNustackContext(nuxt: Nuxt): void {
   })
   nuxt.hook('components:extend', (list) => {
     components = [...new Set(list.map(component => component.pascalName))].sort()
-  })
-  nuxt.hook('app:resolve', (app) => {
-    plugins = app.plugins.map(plugin => plugin.src).filter((source): source is string => Boolean(source))
   })
 
   async function collectAutoImports(): Promise<string[]> {
@@ -91,27 +80,12 @@ export function setupNustackContext(nuxt: Nuxt): void {
     return { detected: false, entryPoint: null }
   }
 
-  async function detectCustomPayloadReducer(): Promise<boolean> {
-    for (const source of plugins) {
-      const abs = resolveAlias(source, nuxt.options.alias)
-      try {
-        const contents = nuxt.vfs[abs] ?? await readFile(abs, 'utf-8')
-        if (definesPayloadReducer(contents))
-          return true
-      } catch {
-        // Unreadable or virtual plugin — ignore and keep scanning registered files.
-      }
-    }
-    return false
-  }
-
   async function buildContext(): Promise<NustackContext> {
     return {
       modules: detectModules(),
       tailwind: await detectTailwind(),
       autoImports: await collectAutoImports(),
       components,
-      customPayloadReducer: await detectCustomPayloadReducer(),
     }
   }
 

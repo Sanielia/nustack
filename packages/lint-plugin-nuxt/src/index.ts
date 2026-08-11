@@ -86,15 +86,23 @@ export interface NuxtConfigsOptions {
   autoImports?: string[]
   /** Auto-imported components, tunes `no-explicit-auto-import`. */
   components?: string[]
-  /** Whether the project registers a custom Nuxt payload reducer. */
-  customPayloadReducer?: boolean
+  /** Constructors handled by project-specific Nuxt payload reducers. */
+  payloadSerializableConstructors?: string[]
+  /** Nuxt project roots, relative to the ESLint working directory. */
+  projectDirectories?: string[]
   /** Extra rule overrides, merged onto the app-source scope. */
   rules?: Linter.RulesRecord
 }
 
 /** Returns file-scoped Nuxt flat configs. */
 export function nuxtConfigs(options: NuxtConfigsOptions = {}): Linter.Config[] {
-  const { variant = 'recommended', autoImports, components, customPayloadReducer = false, rules } = options
+  const {
+    variant = 'recommended',
+    autoImports,
+    components,
+    payloadSerializableConstructors = [],
+    rules,
+  } = options
 
   const configs: Linter.Config[] = [
     {
@@ -163,7 +171,9 @@ export function nuxtConfigs(options: NuxtConfigsOptions = {}): Linter.Config[] {
           '@nustack/nuxt/no-process-env': 'warn',
           '@nustack/nuxt/no-proxying-unsafe-headers': 'error',
           '@nustack/nuxt/no-ref-outside-setup': 'error',
-          ...customPayloadReducer ? {} : { '@nustack/nuxt/no-unserializable-use-state': 'error' },
+          '@nustack/nuxt/no-unserializable-use-state': payloadSerializableConstructors.length
+            ? ['error', { allowConstructors: payloadSerializableConstructors }]
+            : 'error',
           '@nustack/nuxt/no-explicit-auto-import': hasContext ? ['error', autoImportOptions] : 'error',
         },
       },

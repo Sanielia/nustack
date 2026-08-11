@@ -3,6 +3,9 @@ import { isTransparentExpression } from '../../utils/ast.js'
 import { docsUrl } from '../../utils/docs-url.js'
 
 type Initializer = ESTree.ArrowFunctionExpression | ESTree.Function
+interface Options {
+  allowConstructors?: string[]
+}
 
 const SERIALIZABLE_CONSTRUCTORS = new Set([
   'Array',
@@ -32,15 +35,15 @@ const SERIALIZABLE_CONSTRUCTORS = new Set([
   'URL',
   'URLSearchParams',
 ])
+const UNSERIALIZABLE_CONSTRUCTORS = new Set(['Function', 'Promise', 'Symbol', 'WeakMap', 'WeakRef', 'WeakSet'])
 
 function calleeName(node: ESTree.Expression): string | undefined {
   if (node.type === 'Identifier')
     return node.name
 
-  if (node.type === 'MemberExpression' && !node.computed
-    && node.object.type === 'Identifier' && node.object.name === 'Temporal'
-    && node.property.type === 'Identifier') {
-    return `Temporal.${node.property.name}`
+  if (node.type === 'MemberExpression' && !node.computed && node.property.type === 'Identifier') {
+    const object = calleeName(node.object as ESTree.Expression)
+    return object ? `${object}.${node.property.name}` : undefined
   }
 }
 
@@ -51,16 +54,30 @@ function isSymbolExpression(node: ESTree.Expression): boolean {
     && (calleeName(node.callee) === 'Symbol' || isSymbolExpression(node.callee))
 }
 
-function unsupportedType(node: ESTree.Expression): string | undefined {
+function isPromiseExpression(node: ESTree.Expression): boolean {
+  if (node.type !== 'CallExpression')
+    return false
+  const name = calleeName(node.callee)
+  return name === 'Promise' || name?.startsWith('Promise.') === true
+}
+
+function unsupportedType(node: ESTree.Expression, allowedConstructors: Set<string>): string | undefined {
   if (node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression')
     return 'a function'
   if (node.type === 'ClassExpression')
     return 'a class'
   if (isSymbolExpression(node))
     return 'a symbol'
+  if (isPromiseExpression(node))
+    return 'a Promise'
   if (node.type === 'NewExpression') {
     const name = calleeName(node.callee)
-    if (name?.startsWith('Temporal.') || (name && SERIALIZABLE_CONSTRUCTORS.has(name)))
+    const [qualifier, baseName] = name?.includes('.') ? [name.slice(0, name.lastIndexOf('.')), name.slice(name.lastIndexOf('.') + 1)] : [undefined, name]
+    if (baseName && UNSERIALIZABLE_CONSTRUCTORS.has(baseName)
+      && (qualifier === undefined || qualifier === 'globalThis' || qualifier === 'global' || qualifier === 'window')) {
+      return baseName === 'Promise' ? 'a Promise' : `an instance of \`${name}\``
+    }
+    if (name?.startsWith('Temporal.') || (name && (SERIALIZABLE_CONSTRUCTORS.has(name) || allowedConstructors.has(name))))
       return
     return name ? `an instance of \`${name}\`` : 'a class instance'
   }
@@ -83,12 +100,25 @@ export const noUnserializableUseState: Rule = {
       description: 'Disallow values that Nuxt cannot serialize in `useState` initializers.',
       url: docsUrl('no-unserializable-use-state'),
     },
-    schema: [],
+    schema: [{
+      type: 'object',
+      properties: {
+        allowConstructors: {
+          type: 'array',
+          items: { type: 'string' },
+          uniqueItems: true,
+        },
+      },
+      additionalProperties: false,
+    }],
     messages: {
       unserializable: '`useState()` initializes with {{ type }}, which Nuxt\'s default payload serializer cannot serialize.',
     },
   },
   create(context: Context): Visitor {
+    const options = (context.options?.[0] ?? {}) as Options
+    const allowedConstructors = new Set(options.allowConstructors ?? [])
+
     function report(node: ESTree.Node, type: string): void {
       context.report({ node, messageId: 'unserializable', data: { type } })
     }
@@ -99,7 +129,7 @@ export const noUnserializableUseState: Rule = {
     }
 
     function checkValue(node: ESTree.Expression): void {
-      const type = unsupportedType(node)
+      const type = unsupportedType(node, allowedConstructors)
       if (type) {
         report(node, type)
         return

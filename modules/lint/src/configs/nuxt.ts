@@ -4,7 +4,10 @@ import type { ConcernOptions } from '../utils'
 import { nuxtConfigs } from '@nustackjs/lint-plugin-nuxt'
 import { resolveConcernRules } from '../utils'
 
-export type NuxtConcernOptions = ConcernOptions
+export interface NuxtConcernOptions extends ConcernOptions {
+  /** Constructors handled by project-specific Nuxt payload reducers. */
+  payloadSerializableConstructors?: string[]
+}
 
 export function nuxtConfig(
   context: NustackContext,
@@ -14,7 +17,7 @@ export function nuxtConfig(
     variant: 'recommended',
     autoImports: context.autoImports,
     components: context.components,
-    customPayloadReducer: context.customPayloadReducer,
+    payloadSerializableConstructors: options.payloadSerializableConstructors,
     rules: resolveConcernRules(options),
   })
 }

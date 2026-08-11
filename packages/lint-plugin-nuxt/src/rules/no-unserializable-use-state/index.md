@@ -22,6 +22,13 @@ const selectedIds = useState('selected-ids', () => new Set<number>())
 
 The rule checks values returned directly by initializer callbacks. Dynamic factory results and later mutations of the state ref are outside its scope.
 
-If the Nuxt project registers any custom serializer with `definePayloadReducer`, `@nustackjs/lint` disables this rule project-wide because the custom reducer can change which values are supported. Standalone users can represent the same setup with `nuxtConfigs({ customPayloadReducer: true })`.
+Custom payload reducers are intentionally not inferred from source code because it's expensive to infer the runtime type they accept. Declare supported constructors explicitly while keeping all other checks active:
+
+```ts
+nuxtConfigs({ payloadSerializableConstructors: ['DateTime', 'Prisma.Decimal'] })
+
+// With @nustackjs/lint:
+nustack({ nuxt: { payloadSerializableConstructors: ['DateTime'] } })
+```
 
 See [Nuxt's state management documentation](https://nuxt.com/docs/4.x/getting-started/state-management) and [custom reducer/reviver documentation](https://nuxt.com/docs/4.x/api/composables/use-nuxt-app#custom-reducerreviver-v34).

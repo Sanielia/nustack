@@ -8,12 +8,52 @@ const rule = plugin.rules?.['no-unserializable-use-state']
 const languageOptions = { ecmaVersion: 'latest' as const, sourceType: 'module' as const }
 
 describe('no-unserializable-use-state', () => {
-  it('is omitted when the project has a custom payload reducer', () => {
-    const enabledRules = nuxtConfigs().flatMap(config => Object.keys(config.rules ?? {}))
-    const customRules = nuxtConfigs({ customPayloadReducer: true }).flatMap(config => Object.keys(config.rules ?? {}))
+  it('keeps the rule enabled with custom serializable constructors', () => {
+    const appConfig = nuxtConfigs({ payloadSerializableConstructors: ['DateTime'] })
+      .find(config => config.name === 'nustack/nuxt/app')
 
-    expect(enabledRules).toContain('@nustack/nuxt/no-unserializable-use-state')
-    expect(customRules).not.toContain('@nustack/nuxt/no-unserializable-use-state')
+    expect(appConfig?.rules?.['@nustack/nuxt/no-unserializable-use-state']).toEqual([
+      'error',
+      { allowConstructors: ['DateTime'] },
+    ])
+  })
+
+  it('allows only explicitly configured custom constructors', () => {
+    const tester = new RuleTester({ languageOptions })
+
+    tester.run('no-unserializable-use-state', rule as never, {
+      valid: [
+        { code: 'useState(() => new DateTime())', options: [{ allowConstructors: ['DateTime'] }] },
+        { code: 'useState(() => new Prisma.Decimal(1))', options: [{ allowConstructors: ['Prisma.Decimal'] }] },
+        { code: 'useState(() => new Domain.Promise())', options: [{ allowConstructors: ['Domain.Promise'] }] },
+      ],
+      invalid: [
+        {
+          code: 'useState(() => ({ date: new DateTime(), user: new User(), callback: () => {}, token: Symbol("x") }))',
+          options: [{ allowConstructors: ['DateTime'] }],
+          errors: [
+            { messageId: 'unserializable', data: { type: 'an instance of `User`' } },
+            { messageId: 'unserializable', data: { type: 'a function' } },
+            { messageId: 'unserializable', data: { type: 'a symbol' } },
+          ],
+        },
+        {
+          code: 'useState(() => Promise.resolve({ ready: true }))',
+          options: [{ allowConstructors: ['Promise'] }],
+          errors: [{ messageId: 'unserializable', data: { type: 'a Promise' } }],
+        },
+        {
+          code: 'useState(() => new Promise(resolve => resolve()))',
+          options: [{ allowConstructors: ['Promise'] }],
+          errors: [{ messageId: 'unserializable', data: { type: 'a Promise' } }],
+        },
+        {
+          code: 'useState(() => new globalThis.Promise(resolve => resolve()))',
+          options: [{ allowConstructors: ['globalThis.Promise'] }],
+          errors: [{ messageId: 'unserializable', data: { type: 'a Promise' } }],
+        },
+      ],
+    })
   })
 
   it('allows values supported by Nuxt default payload serialization', () => {
