@@ -1,5 +1,8 @@
 import type { ESTree } from '@oxlint/plugins'
 
+export type FunctionNode = ESTree.ArrowFunctionExpression | ESTree.Function
+export type NamedIdentifier = ESTree.Node & { type: 'Identifier', name: string }
+
 export type TransparentExpression
   = | ESTree.ChainExpression
     | ESTree.TSAsExpression
@@ -19,6 +22,32 @@ export const TRANSPARENT_EXPRESSION_NODES = new Set([
 
 export function isTransparentExpression(node: ESTree.Node | null | undefined): node is TransparentExpression {
   return node !== null && node !== undefined && TRANSPARENT_EXPRESSION_NODES.has(node.type)
+}
+
+export function isFunctionNode(node: ESTree.Node): node is FunctionNode {
+  return node.type === 'ArrowFunctionExpression'
+    || node.type === 'FunctionDeclaration'
+    || node.type === 'FunctionExpression'
+}
+
+export function transparentExpressionContext(node: ESTree.Node): { expression: ESTree.Node, parent: ESTree.Node | null } {
+  let expression = node
+  let parent = node.parent
+  while (isTransparentExpression(parent) && parent.expression === expression) {
+    expression = parent
+    parent = parent.parent
+  }
+  return { expression, parent }
+}
+
+export function functionBindingIdentifier(node: FunctionNode): NamedIdentifier | undefined {
+  if (node.type === 'FunctionDeclaration')
+    return node.id as NamedIdentifier | null ?? undefined
+
+  const { parent } = transparentExpressionContext(node)
+  return parent?.type === 'VariableDeclarator' && parent.id.type === 'Identifier'
+    ? parent.id as NamedIdentifier
+    : undefined
 }
 
 export function unwrapExpression(node: ESTree.Expression): ESTree.Expression

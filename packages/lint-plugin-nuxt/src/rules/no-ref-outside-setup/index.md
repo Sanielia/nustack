@@ -10,6 +10,10 @@ Incorrect:
 export const state = ref({})
 
 export const useProjectState = () => ref({})
+
+function setup() {
+  return ref({}) // A name alone does not make this a component setup function.
+}
 ```
 
 Correct:
@@ -33,6 +37,6 @@ export default defineComponent({
 })
 ```
 
-The rule recognizes Nuxt's auto-imported `ref`, named imports (including aliases) from `vue`, and `ref` accessed through a Vue namespace import. It does not report unrelated functions or object methods named `ref`.
+The rule recognizes Nuxt's auto-imported `ref`, named imports (including aliases) from `vue`, and `ref` accessed through a Vue namespace import. Setup exemptions are limited to `<script setup>`, direct component options exported as default, and options passed to `defineComponent` or `defineNuxtComponent`. Vue's setup callback form of `defineComponent` is also supported.
 
 See [Nuxt's state management best practices](https://nuxt.com/docs/4.x/getting-started/state-management#best-practices).

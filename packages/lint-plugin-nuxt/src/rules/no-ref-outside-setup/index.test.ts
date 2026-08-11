@@ -21,11 +21,16 @@ describe('no-ref-outside-setup', () => {
       valid: [
         'const unrelated = api.ref({})',
         'const ref = factory; ref({})',
-        'function setup() { const state = ref({}) }',
-        'const setup = () => ref({})',
-        'const component = { setup: () => ref({}) }',
-        'const component = { setup() { callback(() => ref({})) } }',
-        'const component = { ["setup"]: function () { return ref({}) } }',
+        'export default { setup: () => ref({}) }',
+        'export const component = { setup() { callback(() => ref({})) } }',
+        'defineComponent({ ["setup"]: function () { return ref({}) } })',
+        'defineNuxtComponent(() => ref({}))',
+        'function setup() { return ref({}) } export default { setup }',
+        'function setup() { return ref({}) } const componentSetup = setup; export default { setup: componentSetup }',
+        'const component = { setup() { return ref({}) } }; export default component',
+        'const options = { setup() { return ref({}) } }; export default defineComponent(options)',
+        'const options = { setup() { return ref({}) } }; const component = options; export default component',
+        'import { defineComponent as component } from "vue"; component({ setup() { return ref({}) } })',
       ],
       invalid: [
         { code: 'const state = ref({})', errors: [error] },
@@ -36,6 +41,12 @@ describe('no-ref-outside-setup', () => {
         { code: 'const values = { state: ref({}) }', errors: [error] },
         { code: 'function createState() { return ref({}) }', errors: [error] },
         { code: 'export const useState = () => ref({})', errors: [error] },
+        { code: 'function setup() { return ref({}) } export const sharedState = setup()', errors: [error] },
+        { code: 'function setup() { return ref({}) } export default { setup }; export const sharedState = setup()', errors: [error] },
+        { code: 'const setup = () => ref({}); setup()', errors: [error] },
+        { code: 'const component = { setup: () => ref({}) }', errors: [error] },
+        { code: 'const defineComponent = callback => callback(); defineComponent({ setup() { return ref({}) } })', errors: [error] },
+        { code: 'onMounted(function setup() { ref({}) })', errors: [error] },
         { code: 'ref({}); ref({})', errors: [error, error] },
       ],
     })
@@ -48,8 +59,8 @@ describe('no-ref-outside-setup', () => {
       valid: [
         'import { ref as createRef } from "other"; createRef({})',
         'import * as Vue from "other"; Vue.ref({})',
-        'import { ref as vueRef } from "vue"; function setup() { vueRef({}) }',
-        'import * as Vue from "vue"; const component = { setup() { Vue["ref"]({}) } }',
+        'import { ref as vueRef } from "vue"; export default { setup() { vueRef({}) } }',
+        'import * as Vue from "vue"; defineComponent({ setup() { Vue["ref"]({}) } })',
         'import { ref } from "vue"; function create(ref) { return ref({}) }',
       ],
       invalid: [
@@ -66,8 +77,9 @@ describe('no-ref-outside-setup', () => {
 
     tester.run('no-ref-outside-setup', rule as never, {
       valid: [
-        'const setup = function setup() { return ref<State>({ count: 0 }) }',
-        'const setup = (() => ref<State>({ count: 0 })) satisfies SetupFunction',
+        'export default { setup: function setup() { return ref<State>({ count: 0 }) } }',
+        'defineComponent({ setup: ((() => ref<State>({ count: 0 })) satisfies SetupFunction) })',
+        'const component = { setup() { return ref<State>({ count: 0 }) } }; export default (component as Component)',
       ],
       invalid: [
         {
@@ -76,6 +88,10 @@ describe('no-ref-outside-setup', () => {
         },
         {
           code: 'import { ref as vueRef } from "vue"; (vueRef as RefFactory)({})',
+          errors: [error],
+        },
+        {
+          code: 'const handler = function setup() { return ref<State>({ count: 0 }) }',
           errors: [error],
         },
       ],
