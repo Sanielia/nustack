@@ -50,6 +50,17 @@ export function functionBindingIdentifier(node: FunctionNode): NamedIdentifier |
     : undefined
 }
 
+export function functionName(node: FunctionNode): string | undefined {
+  if (node.type === 'FunctionDeclaration')
+    return node.id?.name
+
+  const { expression, parent } = transparentExpressionContext(node)
+  if (parent?.type === 'VariableDeclarator' && parent.id.type === 'Identifier')
+    return parent.id.name
+  if ((parent?.type === 'Property' || parent?.type === 'MethodDefinition') && parent.value === expression)
+    return staticPropertyName(parent as ESTree.ObjectProperty | ESTree.MethodDefinition, true)
+}
+
 export function unwrapExpression(node: ESTree.Expression): ESTree.Expression
 export function unwrapExpression(node: ESTree.Expression | null | undefined): ESTree.Expression | undefined
 export function unwrapExpression(node: ESTree.Expression | null | undefined): ESTree.Expression | undefined {

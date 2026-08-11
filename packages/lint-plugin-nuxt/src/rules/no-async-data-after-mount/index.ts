@@ -2,6 +2,7 @@ import type { Context, ESTree, Rule, Visitor } from '@oxlint/plugins'
 import type { FunctionNode, NamedIdentifier } from '../../utils/ast.js'
 import {
   functionBindingIdentifier,
+  functionName,
   isFunctionNode,
   staticPropertyName,
   transparentExpressionContext,
@@ -9,7 +10,7 @@ import {
 } from '../../utils/ast.js'
 import { docsUrl } from '../../utils/docs-url.js'
 import { createImportedCallMatcher } from '../../utils/imports.js'
-import { findVariable } from '../../utils/scope.js'
+import { findVariable, functionBindingReferences } from '../../utils/scope.js'
 import { isInRanges, scriptSetupRanges } from '../../utils/vue.js'
 
 const ASYNC_DATA_COMPOSABLES = new Set([
@@ -24,18 +25,6 @@ const NUXT_INITIALIZER_FACTORIES = new Set([
   'defineNuxtPlugin',
   'defineNuxtRouteMiddleware',
 ])
-
-function functionName(node: FunctionNode): string | undefined {
-  if (node.type === 'FunctionDeclaration')
-    return node.id?.name
-
-  const { expression, parent } = transparentExpressionContext(node)
-
-  if (parent?.type === 'VariableDeclarator' && parent.id.type === 'Identifier')
-    return parent.id.name
-  if ((parent?.type === 'Property' || parent?.type === 'MethodDefinition') && parent.value === expression)
-    return staticPropertyName(parent as ESTree.ObjectProperty | ESTree.MethodDefinition, true)
-}
 
 function isCallbackArgument(node: ESTree.Node): boolean {
   const { expression, parent } = transparentExpressionContext(node)
@@ -151,11 +140,9 @@ function objectMemberReferences(
 }
 
 function functionReferences(sourceCode: Context['sourceCode'], node: FunctionNode): ESTree.Node[] | undefined {
-  const identifier = functionBindingIdentifier(node)
-  if (identifier) {
-    const variable = findVariable(sourceCode, identifier, identifier.name)
-    return variable?.references.map(reference => reference.identifier)
-  }
+  const references = functionBindingReferences(sourceCode, node)
+  if (references)
+    return references
 
   const { expression, parent } = transparentExpressionContext(node)
   if (parent?.type !== 'Property' || parent.value !== expression || parent.parent?.type !== 'ObjectExpression')

@@ -6,6 +6,7 @@ import { noAsyncDataAfterMount as noAsyncDataAfterMountRule } from './rules/no-a
 import { noDeprecatedModules as noDeprecatedModulesRule } from './rules/no-deprecated-modules/index.js'
 import { noEmptyAsyncDataKey as noEmptyAsyncDataKeyRule } from './rules/no-empty-async-data-key/index.js'
 import { noExplicitAutoImport as noExplicitAutoImportRule } from './rules/no-explicit-auto-import/index.js'
+import { noFetchDuringSetup as noFetchDuringSetupRule } from './rules/no-fetch-during-setup/index.js'
 import { noIgnoredConfigFiles as noIgnoredConfigFilesRule } from './rules/no-ignored-config-files/index.js'
 import { noInvalidStatusText as noInvalidStatusTextRule } from './rules/no-invalid-status-text/index.js'
 import { noProcessEnv as noProcessEnvRule } from './rules/no-process-env/index.js'
@@ -62,6 +63,7 @@ const plugin = eslintCompatPlugin({
     'no-deprecated-modules': noDeprecatedModulesRule,
     'no-empty-async-data-key': noEmptyAsyncDataKeyRule,
     'no-explicit-auto-import': noExplicitAutoImportRule,
+    'no-fetch-during-setup': noFetchDuringSetupRule,
     'no-ignored-config-files': noIgnoredConfigFilesRule,
     'no-invalid-status-text': noInvalidStatusTextRule,
     'no-process-env': noProcessEnvRule,
@@ -180,6 +182,7 @@ export function nuxtConfigs(options: NuxtConfigsOptions = {}): Linter.Config[] {
           '@nustack/nuxt/head-tag-style': 'error',
           '@nustack/nuxt/no-async-data-after-mount': 'error',
           '@nustack/nuxt/no-empty-async-data-key': 'error',
+          '@nustack/nuxt/no-fetch-during-setup': 'error',
           '@nustack/nuxt/no-process-env': 'warn',
           '@nustack/nuxt/no-proxying-unsafe-headers': 'error',
           '@nustack/nuxt/no-ref-outside-setup': 'error',
@@ -216,6 +219,7 @@ export const noAsyncDataAfterMount: Rule.RuleModule = plugin.rules!['no-async-da
 export const noDeprecatedModules: Rule.RuleModule = plugin.rules!['no-deprecated-modules'] as Rule.RuleModule
 export const noEmptyAsyncDataKey: Rule.RuleModule = plugin.rules!['no-empty-async-data-key'] as Rule.RuleModule
 export const noExplicitAutoImport: Rule.RuleModule = plugin.rules!['no-explicit-auto-import'] as Rule.RuleModule
+export const noFetchDuringSetup: Rule.RuleModule = plugin.rules!['no-fetch-during-setup'] as Rule.RuleModule
 export const noIgnoredConfigFiles: Rule.RuleModule = plugin.rules!['no-ignored-config-files'] as Rule.RuleModule
 export const noInvalidStatusText: Rule.RuleModule = plugin.rules!['no-invalid-status-text'] as Rule.RuleModule
 export const noProcessEnv: Rule.RuleModule = plugin.rules!['no-process-env'] as Rule.RuleModule
