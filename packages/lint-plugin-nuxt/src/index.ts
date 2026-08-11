@@ -13,6 +13,7 @@ import { noProxyingUnsafeHeaders as noProxyingUnsafeHeadersRule } from './rules/
 import { noRefOutsideSetup as noRefOutsideSetupRule } from './rules/no-ref-outside-setup/index.js'
 import { noSecretInPublicRuntimeConfig as noSecretInPublicRuntimeConfigRule } from './rules/no-secret-in-public-runtimeconfig/index.js'
 import { noUnserializableUseState as noUnserializableUseStateRule } from './rules/no-unserializable-use-state/index.js'
+import { preferLazyDataOption as preferLazyDataOptionRule } from './rules/prefer-lazy-data-option/index.js'
 import { preserveDefaultTsconfig as preserveDefaultTsconfigRule } from './rules/preserve-default-tsconfig/index.js'
 
 /** Where `modules` / `runtimeConfig` rules apply. */
@@ -68,6 +69,7 @@ const plugin = eslintCompatPlugin({
     'no-ref-outside-setup': noRefOutsideSetupRule,
     'no-secret-in-public-runtimeconfig': noSecretInPublicRuntimeConfigRule,
     'no-unserializable-use-state': noUnserializableUseStateRule,
+    'prefer-lazy-data-option': preferLazyDataOptionRule,
     'preserve-default-tsconfig': preserveDefaultTsconfigRule,
   },
 }) as unknown as ESLint.Plugin & {
@@ -176,7 +178,6 @@ export function nuxtConfigs(options: NuxtConfigsOptions = {}): Linter.Config[] {
         plugins: pluginRef,
         rules: {
           '@nustack/nuxt/head-tag-style': 'error',
-          '@nustack/nuxt/lazy-fetch-style': 'error',
           '@nustack/nuxt/no-async-data-after-mount': 'error',
           '@nustack/nuxt/no-empty-async-data-key': 'error',
           '@nustack/nuxt/no-process-env': 'warn',
@@ -186,6 +187,7 @@ export function nuxtConfigs(options: NuxtConfigsOptions = {}): Linter.Config[] {
             ? ['error', { allowConstructors: payloadSerializableConstructors }]
             : 'error',
           '@nustack/nuxt/no-explicit-auto-import': hasContext ? ['error', autoImportOptions] : 'error',
+          '@nustack/nuxt/prefer-lazy-data-option': 'error',
         },
       },
     )
@@ -221,5 +223,6 @@ export const noProxyingUnsafeHeaders: Rule.RuleModule = plugin.rules!['no-proxyi
 export const noRefOutsideSetup: Rule.RuleModule = plugin.rules!['no-ref-outside-setup'] as Rule.RuleModule
 export const noSecretInPublicRuntimeConfig: Rule.RuleModule = plugin.rules!['no-secret-in-public-runtimeconfig'] as Rule.RuleModule
 export const noUnserializableUseState: Rule.RuleModule = plugin.rules!['no-unserializable-use-state'] as Rule.RuleModule
+export const preferLazyDataOption: Rule.RuleModule = plugin.rules!['prefer-lazy-data-option'] as Rule.RuleModule
 export const preserveDefaultTsconfig: Rule.RuleModule = plugin.rules!['preserve-default-tsconfig'] as Rule.RuleModule
 export default plugin

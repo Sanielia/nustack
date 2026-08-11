@@ -54,6 +54,7 @@ These rules are compatible with Oxlint, although some may not work perfectly due
 | [`@nustack/nuxt/no-ref-outside-setup`](https://github.com/Zerya-Dev/nustack/blob/master/packages/lint-plugin-nuxt/src/rules/no-ref-outside-setup/index.md) | Disallow Vue refs outside `<script setup>` or a `setup()` function. |
 | [`@nustack/nuxt/no-secret-in-public-runtimeconfig`](https://github.com/Zerya-Dev/nustack/blob/master/packages/lint-plugin-nuxt/src/rules/no-secret-in-public-runtimeconfig/index.md) | Disallow secret-looking keys under `runtimeConfig.public`. |
 | [`@nustack/nuxt/no-unserializable-use-state`](https://github.com/Zerya-Dev/nustack/blob/master/packages/lint-plugin-nuxt/src/rules/no-unserializable-use-state/index.md) | Disallow values that Nuxt's default payload serializer cannot serialize in `useState` initializers. |
+| [`@nustack/nuxt/prefer-lazy-data-option`](https://github.com/Zerya-Dev/nustack/blob/master/packages/lint-plugin-nuxt/src/rules/prefer-lazy-data-option/index.md) | Prefer regular Nuxt data composables with `lazy: true` over dedicated lazy composables. |
 | [`@nustack/nuxt/preserve-default-tsconfig`](https://github.com/Zerya-Dev/nustack/blob/master/packages/lint-plugin-nuxt/src/rules/preserve-default-tsconfig/index.md) | Require Nuxt projects to preserve the default root TypeScript configuration. |
 
 ## License
